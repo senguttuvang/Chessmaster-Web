@@ -1,6 +1,597 @@
-:root{font-family:Verdana,Arial,sans-serif;color:#29251d;background:#183e36;font-synthesis:none;font-size:16px;--paper:#ede8d8;--ink:#29251d;--gold:#e2c582;--green:#244a3f;--line:#8e8065;--focus:#004d91}
-*{box-sizing:border-box}body{margin:0;min-width:320px}button,select{font:inherit}button,select,a{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{cursor:wait}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}::selection{background:#f0d28c;color:#172b24}button,select{border:1px solid #837255;border-radius:2px;background:#eee8d7;color:var(--ink)}button:hover{background:#fff6db}select{width:100%;padding:.55rem .4rem;min-height:42px}a{color:#075b81;text-underline-offset:3px}p{line-height:1.6}h1,h2,p{margin:0}button{min-height:38px;padding:.4rem .7rem}
-.game-room{max-width:1160px;margin:auto;padding:24px 24px 16px}.masthead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;color:#f5e6ba;gap:16px}.wordmark{font-family:Georgia,'Times New Roman',serif;font-size:clamp(1.8rem,4vw,2.7rem);letter-spacing:.02em;font-weight:700;text-shadow:0 2px 2px #142c25}.wordmark span{font-weight:400;color:#dfc17d}.edition{font-size:.85rem;color:#dedcc7}.window{background:var(--paper);border:2px solid #cfbd90;box-shadow:0 14px 30px #061b1966}.titlebar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#294e41;color:#fff5d6;border-bottom:1px solid #132d25}.titlebar h1{font:700 1.1rem Georgia,serif;letter-spacing:.03em}.titlebar span{font-size:.8rem}.menubar{display:flex;flex-wrap:wrap;padding:4px 8px;gap:3px;background:#d6ccb3;border-bottom:1px solid #998e74}.menubar button{border-color:transparent;background:transparent;min-height:36px;font-size:.9rem}.menubar button:hover{border-color:#9d8b62;background:#f2e8cf}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px;padding:20px}.board-area{min-width:0;align-self:start}.player-strip{display:flex;justify-content:space-between;align-items:center;min-height:36px;margin-bottom:8px;gap:10px;font-size:.9rem}.player-strip>span:first-child{font-weight:700}.player-strip>span:last-child{font-size:.78rem;color:#59513e}.player-strip.bottom{margin:9px 0 0}.board-frame{padding:9px 16px;background:linear-gradient(115deg,#724623,#ab7945 35%,#87592e 72%,#63401f);border:1px solid #432b17;box-shadow:inset 0 0 0 3px #b7945d}.files{height:22px;display:flex;align-items:center;justify-content:center;white-space:pre;word-spacing:clamp(1rem,3.45vw,2.65rem);font-size:.75rem;color:#fff0cb;font-weight:700}#board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));aspect-ratio:1;border:1px solid #3d291b}.square{position:relative;display:grid;place-items:center;aspect-ratio:1;min-height:0;min-width:0;padding:0;border:0;border-radius:0;transition:background-color 100ms ease-out}.square.light{background:#ead8af}.square.dark{background:#9c754e}.square.light:hover{background:#f6e7c5}.square.dark:hover{background:#b38c61}.square.selected{box-shadow:inset 0 0 0 4px #15543a;z-index:1}.square.last-move.light{background:#dfd493}.square.last-move.dark{background:#9c975a}.square:focus-visible{outline-offset:-4px;z-index:2}.piece{height:86%;width:86%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 1px #2c1b1845)}.rank{position:absolute;top:3px;left:4px;font-size:.65rem;font-weight:700;color:#332617;pointer-events:none}.legal:after{content:'';position:absolute;width:21%;height:21%;border-radius:50%;background:#1d5939aa;pointer-events:none}.legal:has(.piece):after{width:90%;height:90%;background:none;border:4px solid #1d5939}.game-status{min-height:64px;margin-top:12px;padding:13px;background:#f7f2e5;border:1px solid #b4a484;line-height:1.5;font-size:.9rem}.sidebar{display:flex;flex-direction:column;gap:16px;min-width:0}.panel{border:1px solid #ac9d7e;background:#f7f2e5}.panel h2{font:700 .9rem Verdana,sans-serif;padding:9px 12px;color:#fbf3d9;background:#42634e}.opponent{padding-bottom:13px}.opponent-heading{padding:16px 12px;display:flex;gap:12px;align-items:center}.opponent-heading img{width:65px;height:78px;object-fit:contain;background:#d9cfb0;border:1px solid #988568}.opponent-heading strong{font:700 1.2rem Georgia,serif}.opponent-heading p{font-size:.8rem;margin-top:6px;line-height:1.5}.opponent>label,.opponent>select,.profile-note{margin-left:12px;margin-right:12px}.opponent>label{display:block;font-size:.8rem;font-weight:700;margin-bottom:6px}.opponent>select{width:calc(100% - 24px)}.profile-note,.settings-note{font-size:.72rem;color:#60523b;margin-top:10px;line-height:1.6}.settings{padding:12px;display:grid;gap:7px}.settings label{font-size:.8rem;font-weight:700}.settings label:not(:first-child){margin-top:5px}.settings-note{margin:0 12px 12px}.notation{flex:1;min-height:155px}.notation-head,.notation li{display:grid;grid-template-columns:42px 1fr 1fr;gap:6px;padding:7px 12px;font-size:.85rem}.notation-head{background:#e1dac6;color:#4f4430;border-bottom:1px solid #b4a484;font-weight:700;font-size:.75rem}.notation ol{margin:0;padding:0;list-style:none;max-height:180px;overflow:auto;font-variant-numeric:tabular-nums;scrollbar-color:#8a7758 #e5dcc5;scrollbar-width:thin}.notation li:nth-child(even){background:#eee7d4}.notation li:last-child{font-weight:700}.notation>p{padding:18px 12px;font-size:.8rem;color:#60523b}.statusbar{display:flex;justify-content:space-between;gap:16px;padding:9px 12px;background:#d6ccb3;border-top:1px solid #a79a7e;font-size:.68rem;color:#4e442f;line-height:1.5}.project-note{color:#dedfd0;font-size:.72rem;text-align:center;margin:16px auto 0;max-width:85ch;line-height:1.7}dialog{max-width:560px;width:calc(100% - 36px);padding:26px;border:2px solid #9d8759;border-radius:4px;background:#f7f2e5;color:#29251d;box-shadow:0 16px 40px #081a1666}dialog::backdrop{background:#061b19b3}dialog h2{font:700 1.45rem Georgia,serif;margin-bottom:16px}dialog p{margin:14px 0;font-size:.95rem}dialog button{min-height:44px}.promotion-options{display:flex;flex-wrap:wrap;gap:8px}.promotion-options button{text-transform:capitalize;flex:1}
-@media(max-width:820px){.game-room{padding:14px}.workspace{grid-template-columns:minmax(0,1fr) 240px;gap:12px;padding:12px}.board-frame{padding:5px 10px}.files{word-spacing:2.55vw}.edition{font-size:.7rem}.statusbar>span:last-child{display:none}.player-strip>span:last-child{font-size:.65rem}.opponent-heading{gap:8px;padding:12px 8px}.opponent-heading img{width:50px;height:64px}}
-@media(max-width:660px){.game-room{padding:12px 8px}.masthead{margin-bottom:12px;align-items:flex-end}.edition{max-width:90px;text-align:right;line-height:1.6}.workspace{grid-template-columns:1fr;padding:12px}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:12px}.notation{grid-column:1/-1}.board-frame{padding:5px 13px}.files{word-spacing:7.1vw}.titlebar{padding:10px 12px}.titlebar span{font-size:.68rem}.menubar{padding:3px}.menubar button{font-size:.76rem;padding:.35rem .5rem;min-height:40px}.player-strip>span:last-child{font-size:.72rem}.game-status{min-height:66px}.profile-note{font-size:.68rem}.project-note{padding:0 10px}.opponent-heading{display:block}.opponent-heading img{float:left;margin:0 9px 6px 0}.opponent-heading:after{content:'';display:block;clear:both}.opponent-heading strong{font-size:1.05rem}.settings select{font-size:.9rem}.notation ol{max-height:170px}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+:root {
+  font-family: Verdana, Arial, sans-serif;
+  color: #29251d;
+  background: #183e36;
+  font-synthesis: none;
+  font-size: 16px;
+  --paper: #ede8d8;
+  --ink: #29251d;
+  --gold: #e2c582;
+  --green: #244a3f;
+  --line: #8e8065;
+  --focus: #004d91;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+select {
+  font: inherit;
+}
+button,
+select,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: wait;
+}
+button:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: #f0d28c;
+  color: #172b24;
+}
+button,
+select {
+  border: 1px solid #837255;
+  border-radius: 2px;
+  background: #eee8d7;
+  color: var(--ink);
+}
+button:hover {
+  background: #fff6db;
+}
+select {
+  width: 100%;
+  padding: 0.55rem 0.4rem;
+  min-height: 42px;
+}
+a {
+  color: #075b81;
+  text-underline-offset: 3px;
+}
+p {
+  line-height: 1.6;
+}
+h1,
+h2,
+p {
+  margin: 0;
+}
+button {
+  min-height: 38px;
+  padding: 0.4rem 0.7rem;
+}
+.game-room {
+  max-width: 1160px;
+  margin: auto;
+  padding: 24px 24px 16px;
+}
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  color: #f5e6ba;
+  gap: 16px;
+}
+.wordmark {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  letter-spacing: 0.02em;
+  font-weight: 700;
+  text-shadow: 0 2px 2px #142c25;
+}
+.wordmark span {
+  font-weight: 400;
+  color: #dfc17d;
+}
+.edition {
+  font-size: 0.85rem;
+  color: #dedcc7;
+}
+.window {
+  background: var(--paper);
+  border: 2px solid #cfbd90;
+  box-shadow: 0 14px 30px #061b1966;
+}
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #294e41;
+  color: #fff5d6;
+  border-bottom: 1px solid #132d25;
+}
+.titlebar h1 {
+  font:
+    700 1.1rem Georgia,
+    serif;
+  letter-spacing: 0.03em;
+}
+.titlebar span {
+  font-size: 0.8rem;
+}
+.menubar {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 4px 8px;
+  gap: 3px;
+  background: #d6ccb3;
+  border-bottom: 1px solid #998e74;
+}
+.menubar button {
+  border-color: transparent;
+  background: transparent;
+  min-height: 36px;
+  font-size: 0.9rem;
+}
+.menubar button:hover {
+  border-color: #9d8b62;
+  background: #f2e8cf;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 20px;
+  padding: 20px;
+}
+.board-area {
+  min-width: 0;
+  align-self: start;
+}
+.player-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: 8px;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.player-strip > span:first-child {
+  font-weight: 700;
+}
+.player-strip > span:last-child {
+  font-size: 0.78rem;
+  color: #59513e;
+}
+.player-strip.bottom {
+  margin: 9px 0 0;
+}
+.board-frame {
+  padding: 9px 16px;
+  background: linear-gradient(
+    115deg,
+    #724623,
+    #ab7945 35%,
+    #87592e 72%,
+    #63401f
+  );
+  border: 1px solid #432b17;
+  box-shadow: inset 0 0 0 3px #b7945d;
+}
+.files {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: pre;
+  word-spacing: clamp(1rem, 3.45vw, 2.65rem);
+  font-size: 0.75rem;
+  color: #fff0cb;
+  font-weight: 700;
+}
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  aspect-ratio: 1;
+  border: 1px solid #3d291b;
+}
+.square {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  transition: background-color 100ms ease-out;
+}
+.square.light {
+  background: #ead8af;
+}
+.square.dark {
+  background: #9c754e;
+}
+.square.light:hover {
+  background: #f6e7c5;
+}
+.square.dark:hover {
+  background: #b38c61;
+}
+.square.selected {
+  box-shadow: inset 0 0 0 4px #15543a;
+  z-index: 1;
+}
+.square.last-move.light {
+  background: #dfd493;
+}
+.square.last-move.dark {
+  background: #9c975a;
+}
+.square:focus-visible {
+  outline-offset: -4px;
+  z-index: 2;
+}
+.piece {
+  height: 86%;
+  width: 86%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 1px #2c1b1845);
+}
+.rank {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #332617;
+  pointer-events: none;
+}
+.legal:after {
+  content: "";
+  position: absolute;
+  width: 21%;
+  height: 21%;
+  border-radius: 50%;
+  background: #1d5939aa;
+  pointer-events: none;
+}
+.legal:has(.piece):after {
+  width: 90%;
+  height: 90%;
+  background: none;
+  border: 4px solid #1d5939;
+}
+.game-status {
+  min-height: 64px;
+  margin-top: 12px;
+  padding: 13px;
+  background: #f7f2e5;
+  border: 1px solid #b4a484;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.panel {
+  border: 1px solid #ac9d7e;
+  background: #f7f2e5;
+}
+.panel h2 {
+  font:
+    700 0.9rem Verdana,
+    sans-serif;
+  padding: 9px 12px;
+  color: #fbf3d9;
+  background: #42634e;
+}
+.opponent {
+  padding-bottom: 13px;
+}
+.opponent-heading {
+  padding: 16px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.opponent-heading img {
+  width: 65px;
+  height: 78px;
+  object-fit: contain;
+  background: #d9cfb0;
+  border: 1px solid #988568;
+}
+.opponent-heading strong {
+  font:
+    700 1.2rem Georgia,
+    serif;
+}
+.opponent-heading p {
+  font-size: 0.8rem;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.opponent > label,
+.opponent > select,
+.profile-note {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+.opponent > label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.opponent > select {
+  width: calc(100% - 24px);
+}
+.profile-note,
+.settings-note {
+  font-size: 0.72rem;
+  color: #60523b;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.settings {
+  padding: 12px;
+  display: grid;
+  gap: 7px;
+}
+.settings label {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.settings label:not(:first-child) {
+  margin-top: 5px;
+}
+.settings-note {
+  margin: 0 12px 12px;
+}
+.notation {
+  flex: 1;
+  min-height: 155px;
+}
+.notation-head,
+.notation li {
+  display: grid;
+  grid-template-columns: 42px 1fr 1fr;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 0.85rem;
+}
+.notation-head {
+  background: #e1dac6;
+  color: #4f4430;
+  border-bottom: 1px solid #b4a484;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+.notation ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow: auto;
+  font-variant-numeric: tabular-nums;
+  scrollbar-color: #8a7758 #e5dcc5;
+  scrollbar-width: thin;
+}
+.notation li:nth-child(even) {
+  background: #eee7d4;
+}
+.notation li:last-child {
+  font-weight: 700;
+}
+.notation > p {
+  padding: 18px 12px;
+  font-size: 0.8rem;
+  color: #60523b;
+}
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 12px;
+  background: #d6ccb3;
+  border-top: 1px solid #a79a7e;
+  font-size: 0.68rem;
+  color: #4e442f;
+  line-height: 1.5;
+}
+.project-note {
+  color: #dedfd0;
+  font-size: 0.72rem;
+  text-align: center;
+  margin: 16px auto 0;
+  max-width: 85ch;
+  line-height: 1.7;
+}
+dialog {
+  max-width: 560px;
+  width: calc(100% - 36px);
+  padding: 26px;
+  border: 2px solid #9d8759;
+  border-radius: 4px;
+  background: #f7f2e5;
+  color: #29251d;
+  box-shadow: 0 16px 40px #081a1666;
+}
+dialog::backdrop {
+  background: #061b19b3;
+}
+dialog h2 {
+  font:
+    700 1.45rem Georgia,
+    serif;
+  margin-bottom: 16px;
+}
+dialog p {
+  margin: 14px 0;
+  font-size: 0.95rem;
+}
+dialog button {
+  min-height: 44px;
+}
+.promotion-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.promotion-options button {
+  text-transform: capitalize;
+  flex: 1;
+}
+@media (max-width: 820px) {
+  .game-room {
+    padding: 14px;
+  }
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 12px;
+    padding: 12px;
+  }
+  .board-frame {
+    padding: 5px 10px;
+  }
+  .files {
+    word-spacing: 2.55vw;
+  }
+  .edition {
+    font-size: 0.7rem;
+  }
+  .statusbar > span:last-child {
+    display: none;
+  }
+  .player-strip > span:last-child {
+    font-size: 0.65rem;
+  }
+  .opponent-heading {
+    gap: 8px;
+    padding: 12px 8px;
+  }
+  .opponent-heading img {
+    width: 50px;
+    height: 64px;
+  }
+}
+@media (max-width: 660px) {
+  .game-room {
+    padding: 12px 8px;
+  }
+  .masthead {
+    margin-bottom: 12px;
+    align-items: flex-end;
+  }
+  .edition {
+    max-width: 90px;
+    text-align: right;
+    line-height: 1.6;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+  .sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .notation {
+    grid-column: 1/-1;
+  }
+  .board-frame {
+    padding: 5px 13px;
+  }
+  .files {
+    word-spacing: 7.1vw;
+  }
+  .titlebar {
+    padding: 10px 12px;
+  }
+  .titlebar span {
+    font-size: 0.68rem;
+  }
+  .menubar {
+    padding: 3px;
+  }
+  .menubar button {
+    font-size: 0.76rem;
+    padding: 0.35rem 0.5rem;
+    min-height: 40px;
+  }
+  .player-strip > span:last-child {
+    font-size: 0.72rem;
+  }
+  .game-status {
+    min-height: 66px;
+  }
+  .profile-note {
+    font-size: 0.68rem;
+  }
+  .project-note {
+    padding: 0 10px;
+  }
+  .opponent-heading {
+    display: block;
+  }
+  .opponent-heading img {
+    float: left;
+    margin: 0 9px 6px 0;
+  }
+  .opponent-heading:after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+  .opponent-heading strong {
+    font-size: 1.05rem;
+  }
+  .settings select {
+    font-size: 0.9rem;
+  }
+  .notation ol {
+    max-height: 170px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+#position-dialog {
+  width: min(32rem, 92vw);
+}
+#position-dialog label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+#fen {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  color: var(--ink);
+  background: #f8f3e5;
+  border: 1px solid #8c7958;
+  padding: 0.6rem;
+}
+#position-error {
+  color: #8b271c;
+}
+#position-form button {
+  margin: 0.5rem 0.5rem 0 0;
+}

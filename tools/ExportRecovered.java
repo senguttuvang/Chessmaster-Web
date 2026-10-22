@@ -16,7 +16,7 @@ public class ExportRecovered extends GhidraScript {
                 monitor.checkCancelled();
                 DecompileResults result = decompiler.decompileFunction(function, 15, monitor);
                 out.println("\n/* Address " + function.getEntryPoint() + " */");
-                if (result.decompileCompleted()) out.println(result.getDecompiledFunction().getC());
+                if (result.decompileCompleted()) out.println(result.getDecompiledFunction().getC().replaceAll("(?m)[ \\t]+$", ""));
                 else out.println("/* Decompilation incomplete: " + result.getErrorMessage().replace("*/", "") + " */");
             }
         } finally { decompiler.dispose(); }

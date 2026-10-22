@@ -10,6 +10,14 @@
     "test": "bun test tests/*.test.ts",
     "test:browser": "playwright test"
   },
-  "dependencies": {"chess.js": "^1.4.0", "effect": "^3.19.0"},
-  "devDependencies": {"@playwright/test": "^1.56.0", "@types/bun": "latest", "typescript": "^5.9.0", "vite": "^7.1.0"}
+  "dependencies": {
+    "chess.js": "^1.4.0",
+    "effect": "^3.19.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/bun": "latest",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  }
 }

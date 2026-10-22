@@ -15,8 +15,8 @@ extern char g_trap_msg[256];
 #define GUEST_STACK_SIZE       0x00200000u
 #define GUEST_HEAP_BASE        0x02000000u
 /* Natively the guest gets a full 4 GiB reservation. In the browser (wasm32) it must share a 4 GiB
-   memory with everything else, so the heap and VirtualAlloc ranges are compacted: the game peaks at
-   ~125 MB of heap and ~580 MB of virtual allocations (mostly mapped archives). */
+   memory with everything else. This engine-only port reserves a compact 384 MiB
+   guest arena; the host and worker stacks need additional Wasm memory. */
 #ifdef __EMSCRIPTEN__
 #define GUEST_SPACE            0x18000000ull
 #define GUEST_HEAP_HI          0x14000000u

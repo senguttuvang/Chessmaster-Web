@@ -197,6 +197,9 @@ int main(int argc,char **argv) {
     fprintf(stderr,"The King original-code runtime: %u imports, entry %08x\n",image.num_imports,image.entry);
     if(getenv("ENGINE_TRACE")){g_trace_cap=1000000;g_trace=calloc(g_trace_cap,sizeof *g_trace);}
     PUSH32(&cpu,GUEST_RETURN_SENTINEL);entry(&cpu);
+    const char *trace_path=getenv("ENGINE_TRACE_FILE");
+    if(trace_path && g_trace){FILE *file=fopen(trace_path,"wb");if(!file)abort();for(uint32_t i=0;i<g_trace_len;i++){fwrite(&g_trace[i].addr,4,1,file);fwrite(g_trace[i].regs,4,8,file);}fclose(file);}
+    fprintf(stderr,"Engine entry returned to %08x (expected %08x)\n",cpu.return_address,GUEST_RETURN_SENTINEL);
     if(g_trace)for(uint32_t i=g_trace_len>32?g_trace_len-32:0;i<g_trace_len;i++)fprintf(stderr,"TRACE %08x eax=%08x esp=%08x\n",g_trace[i].addr,g_trace[i].regs[0],g_trace[i].regs[4]);
     return (int)cpu.eax;
 }

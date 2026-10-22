@@ -319,7 +319,12 @@ class FunctionTranslator:
 
     def call_stmt(self, ins, target_expr, direct_target=None):
         ret = ins.address + ins.size
-        finish = f" if (c->return_address != 0x{ret:08x}u) return;"
+        # Watcom longjmp restores a saved guest stack and returns to an earlier
+        # call site in this same function. Resume that label instead of unwinding
+        # past the owning C frame. Other targets unwind to their owning frame.
+        resumes = getattr(self, "resume_addresses", ())
+        cases = " ".join(f"case 0x{a:08x}u: goto L_{a:08x};" for a in resumes)
+        finish = f" if (c->return_address != 0x{ret:08x}u) {{ switch(c->return_address) {{ {cases} default: return; }} }}"
         prepare = f"c->return_address = 0x{ret:08x}u; "
         if direct_target is not None:
             if direct_target in self.p.entries:
@@ -389,6 +394,9 @@ class FunctionTranslator:
     def translate(self):
         insns = self.decode()
         self.insn_addrs = {i.address for i in insns}
+        self.resume_addresses = sorted({i.address + i.size for i in insns
+                                        if i.mnemonic == "call" and i.address + i.size in self.insn_addrs})
+        self.labels.update(self.resume_addresses)
         body = []
         unsupported = []
         for k, ins in enumerate(insns):
@@ -428,7 +436,7 @@ class FunctionTranslator:
                 lines.append(f"    {stmt}")
         lines.append(f"    {cache.spill(cache.all_bits)}")   # every path ends in a return or tail call; just in case
         lines.append("}")
-        return "\n".join(lines) + "\n", unsupported, len(insns)
+        return "\n".join(line.rstrip() for line in lines) + "\n", unsupported, len(insns)
 
     @staticmethod
     def is_terminator(ins):
@@ -438,7 +446,15 @@ class FunctionTranslator:
         m = ins.mnemonic
         ops = ins.operands
         pre = ins.prefix
-        rep = 0xF3 in pre or 0xF2 in pre
+        # Capstone 5 omits the F2 prefix on Watcom's F2 A5 (REP MOVSD).
+        # Read legacy prefixes from the encoding as well; SSE still follows
+        # its own dispatch below, so mandatory SSE prefixes are unaffected.
+        encoded_prefixes = []
+        for byte in ins.bytes:
+            if byte not in (0xF0, 0xF2, 0xF3, 0x2E, 0x36, 0x3E, 0x26, 0x64, 0x65, 0x66, 0x67):
+                break
+            encoded_prefixes.append(byte)
+        rep = 0xF3 in pre or 0xF2 in pre or 0xF2 in encoded_prefixes or 0xF3 in encoded_prefixes
 
         if m.startswith("rep ") or m.startswith("repne ") or m.startswith("repe "):
             return self.string_op(ins, m.split()[1], m.split()[0])
@@ -464,6 +480,12 @@ class FunctionTranslator:
         return self.sse(ins, m, ops)
 
     # --- data movement
+    def i_verr(self, ins, o):
+        # Flat user-mode descriptors exposed by the minimal host. VERR changes
+        # only ZF; null and unknown selectors must fail the accessibility test.
+        value = self.read(ins, o[0])
+        return f"{{ uint16_t s_ = (uint16_t)({value}); c->zf = s_ == 0x1b || s_ == 0x23 || s_ == 0x53; }}"
+
     def i_mov(self, ins, o):
         return self.write(ins, o[0], self.read(ins, o[1], o[0].size))
 

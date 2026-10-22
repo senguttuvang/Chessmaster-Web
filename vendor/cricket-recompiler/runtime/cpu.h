@@ -65,7 +65,11 @@ static inline double RF64(uint32_t a) { double v; memcpy(&v, g_mem + a, 8); retu
    own memory instead of faulting, so check them. */
 #ifdef RC_BOUNDS
 void guest_bounds_fail(uint32_t a, int n);
-#define BCHK(a, n) do { if ((uint64_t)(a) + (n) > 0x50010000ull) guest_bounds_fail((a), (n)); } while (0)
+#ifdef __EMSCRIPTEN__
+#define BCHK(a, n) do { if ((uint64_t)(a) + (n) > 0x18010000ull) guest_bounds_fail((a), (n)); } while (0)
+#else
+#define BCHK(a, n) do { if ((uint64_t)(a) + (n) > 0x100010000ull) guest_bounds_fail((a), (n)); } while (0)
+#endif
 #else
 #define BCHK(a, n) do { } while (0)
 #endif
