@@ -16,6 +16,7 @@ export type Choice = {
   feedback: string;
   correct: boolean;
   sourceScore?: string;
+  media?: string[];
 };
 export type Exercise = {
   kind: string;
@@ -24,6 +25,9 @@ export type Exercise = {
   correctFeedback?: string;
   incorrectFeedback?: string;
   choices?: Choice[];
+  promptMedia?: string[];
+  correctMedia?: string[];
+  incorrectMedia?: string[];
 };
 export type Frame = {
   board: Diagram;
@@ -36,6 +40,8 @@ export type Frame = {
   exercise?: Exercise;
   warnings: string[];
   media: string[];
+  illustration?: string;
+  moveSound?: "WhiteMove" | "BlackMove" | "Capture";
   fen?: string;
   san?: string;
 };
@@ -91,6 +97,9 @@ export function plain(text: string): string {
   }
   return out.replace(/\s+/g, " ").trim();
 }
+export function narrationReferences(text: string): string[] {
+  return [...text.matchAll(/\{W:([^{}]*)\}/g)].map(m => m[1]);
+}
 export function diagram(input: string): { board: Diagram; turn: "w" | "b" } {
   const [position, side] = input.trim().split(/\s+/);
   const flat: string[] = [];
@@ -128,7 +137,7 @@ export function placement(board: Diagram): string {
 }
 export function parseExercise(name: string, arg: string): Exercise {
   const p = fields(arg);
-  const ex: Exercise = { kind: name, prompt: plain(p[0] ?? "") };
+  const ex: Exercise = { kind: name, prompt: plain(p[0] ?? ""), promptMedia: narrationReferences(p[0] ?? "") };
   if (name === "Q" || name === "QB") {
     const last = p.at(-1)!;
     const correctIndex = /^\d+$/.test(last) ? Number(last) - 1 : null;
@@ -138,6 +147,7 @@ export function parseExercise(name: string, arg: string): Exercise {
       ex.choices.push({
         label: plain(p[i]),
         feedback: plain(p[i + 1]),
+        media: narrationReferences(p[i + 1]),
         correct:
           correctIndex === null
             ? /^(Correct|That's right|Yes[,!.])/i.test(plain(p[i + 1]))
@@ -152,6 +162,7 @@ export function parseExercise(name: string, arg: string): Exercise {
         return {
           label: plain(match?.[1] ?? option),
           feedback: plain(match?.[2] ?? "Original answer format unavailable"),
+          media: narrationReferences(match?.[2] ?? ""),
           correct: /^Correct[.!]/i.test(plain(match?.[2] ?? "")),
           sourceScore: match?.[3],
         };
@@ -160,6 +171,8 @@ export function parseExercise(name: string, arg: string): Exercise {
     ex.answer = plain(p[1] ?? "");
     ex.correctFeedback = plain(p[2] ?? "");
     ex.incorrectFeedback = plain(p[3] ?? "");
+    ex.correctMedia = narrationReferences(p[2] ?? "");
+    ex.incorrectMedia = narrationReferences(p[3] ?? "");
   }
   return ex;
 }
@@ -176,7 +189,11 @@ export function lessonFrames(lesson: Lesson): Frame[] {
     warnings: [],
     media: [],
   };
-  const push = () => frames.push(structuredClone(state));
+  const push = () => {
+    frames.push(structuredClone(state));
+    state.media = [];
+    state.moveSound = undefined;
+  };
   for (let index = 0; index < lesson.steps.length; index++) {
     const step = lesson.steps[index];
     state = {
@@ -217,6 +234,7 @@ export function lessonFrames(lesson: Lesson): Frame[] {
           const m = a.match(/^([a-h][1-8])([a-h][1-8])$/);
           if (!m || !state.board[m[1]])
             throw new Error(`Scripted move cannot be applied: ${a}`);
+          state.moveSound = state.board[m[2]] ? "Capture" : state.board[m[1]] === state.board[m[1]].toUpperCase() ? "WhiteMove" : "BlackMove";
           state.board[m[2]] = state.board[m[1]];
           delete state.board[m[1]];
           state.turn =
@@ -240,6 +258,10 @@ export function lessonFrames(lesson: Lesson): Frame[] {
           push();
         } else if (t.name === "W") {
           state.media.push(a);
+          push();
+        } else if (t.name === "L") {
+          state.illustration = a === "0" ? undefined : a;
+          push();
         } else if (["Q", "QB", "QM", "E", "V", "VB", "I"].includes(t.name)) {
           // Prompt-local diagrams/moves precede the answer boundary. Preserve the
           // whole directive while replaying its prompt's nested display commands.
@@ -252,12 +274,14 @@ export function lessonFrames(lesson: Lesson): Frame[] {
             if (n[1] === "S") {
               const m = n[2].match(/^([a-h][1-8])([a-h][1-8])$/);
               if (m && state.board[m[1]]) {
+                state.moveSound = state.board[m[2]] ? "Capture" : state.board[m[1]] === state.board[m[1]].toUpperCase() ? "WhiteMove" : "BlackMove";
                 state.board[m[2]] = state.board[m[1]];
                 delete state.board[m[1]];
               }
             }
           }
           state.exercise = parseExercise(t.name, a);
+          state.media = state.exercise.promptMedia ?? [];
           push();
         } else if (t.name !== "D") {
           state.warnings.push(`Unimplemented source directive: ${t.name}:${a}`);

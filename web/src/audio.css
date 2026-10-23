@@ -1,0 +1,2 @@
+.audio-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 12px;background:#eee3c8;color:#302a1f;border-top:1px solid #8b784e;font:14px Tahoma,sans-serif}
+.audio-controls label{display:flex;align-items:center;gap:5px}.audio-controls input[type=range]{max-width:110px}.audio-controls input[type=checkbox]{accent-color:#285e49}.audio-controls button{font:inherit}.audio-controls #audio-status{overflow-wrap:anywhere}.audio-controls #audio-error{flex-basis:100%;margin:0;color:#8d201d;overflow-wrap:anywhere}.audio-controls #audio-error:empty{display:none}

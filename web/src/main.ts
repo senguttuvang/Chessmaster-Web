@@ -9,6 +9,8 @@ import { RoomNavigation } from "./navigation";
 import { ContentRoom } from "./content-room";
 import { room, wireRoomControls } from "./room";
 import { OriginalBoard, type CapturedPiece } from "./board3d";
+import { BrowserAudio, moveSoundEvents } from "./audio";
+import "./audio.css";
 
 type Personality = {
   id: string;
@@ -23,6 +25,31 @@ app.innerHTML = room;
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
+const audio = new BrowserAudio(message => {
+  $("audio-status").textContent = message;
+  if (/unavailable|missing|blocked|defect|could not/i.test(message))
+    $("audio-error").textContent = message;
+});
+$<HTMLInputElement>("sound-enabled").checked = audio.enabled;
+$<HTMLInputElement>("narration-enabled").checked = audio.narrationEnabled;
+$<HTMLInputElement>("sound-volume").value = String(audio.volume);
+$("audio-status").textContent = audio.enabled ? "Original sounds play with your actions." : "Sound muted.";
+document.addEventListener("pointerdown", () => audio.unlock(), true);
+document.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") audio.unlock(); }, true);
+function configureAudio(): void {
+  $("audio-error").textContent = "";
+  audio.configure($<HTMLInputElement>("sound-enabled").checked,
+    $<HTMLInputElement>("narration-enabled").checked,
+    Number($<HTMLInputElement>("sound-volume").value));
+}
+for (const id of ["sound-enabled", "narration-enabled", "sound-volume"])
+  $(id).addEventListener("change", configureAudio);
+$("enable-sound").onclick = () => {
+  $<HTMLInputElement>("sound-enabled").checked = true;
+  configureAudio();
+  contentRoom?.playNarration();
+};
+$("stop-sound").onclick = () => { contentRoom?.stop(); audio.stop(); $("audio-status").textContent = "Sound stopped."; };
 const board = $("board");
 const game = new Chess();
 let originalBoard: OriginalBoard | undefined;
@@ -294,6 +321,7 @@ async function choose(square: Square): Promise<void> {
       selected = null;
       updateClocks();
       const move = game.move({ from, to: square, promotion });
+      audio.events(moveSoundEvents(move, game));
       command("force\n" + move.from + move.to + (move.promotion ?? ""));
       if (!game.isGameOver()) {
         thinking = true;
@@ -305,6 +333,7 @@ async function choose(square: Square): Promise<void> {
       return;
     }
   }
+  if (selected && selected !== square && piece?.color !== human()) audio.events(["IllegalMove"]);
   selected = piece?.color === human() && selected !== square ? square : null;
   render();
 }
@@ -337,6 +366,7 @@ function watchReply(): void {
 }
 
 async function startGame(fen?: string): Promise<void> {
+  audio.stop();
   const current = ++generation;
   reviewPly = null;
   elapsed = { w: 0, b: 0 };
@@ -421,11 +451,12 @@ async function startGame(fen?: string): Promise<void> {
               }
               try {
                 updateClocks();
-                game.move({
+                const played = game.move({
                   from: move.slice(0, 2),
                   to: move.slice(2, 4),
                   promotion: move[4],
                 });
+                if (navigation?.current === "game") audio.events(moveSoundEvents(played, game));
               } catch {
                 fail(`The engine returned an illegal move: ${move}.`);
                 return;
@@ -508,7 +539,7 @@ wireRoomControls();
 contentRoom = new ContentRoom(render, (fen) => {
   navigation?.show("game");
   void startGame(fen);
-});
+}, audio);
 const databaseRoom = new DatabaseRoom(contentRoom, () => game.pgn());
 tournamentRoom = new TournamentRoom(
   contentRoom,

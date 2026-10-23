@@ -1,5 +1,6 @@
 import { Chess } from "chess.js";
 import { Schema } from "effect";
+import type { BrowserAudio } from "./audio";
 import {
   LessonsSchema,
   lessonFrames,
@@ -64,16 +65,23 @@ export class ContentRoom {
   private from: string | null = null;
   private picked = new Set<string>();
   private request = 0;
+  private autoPlaying = false;
+  private autoRun = 0;
+  private narration: Promise<void> = Promise.resolve();
+  private imageRun = 0;
   constructor(
     private changed: () => void,
     private play: (fen: string) => void,
+    private audio: BrowserAudio,
   ) {
+    $("replay-narration").hidden = true;
+    $("stop-narration").hidden = true;
     $("content-search").oninput = () => this.catalog();
     $("content-select").onchange = () =>
       this.select($<HTMLSelectElement>("content-select").value);
     $("lesson-step").onchange = () => {
       this.stop();
-      this.replay?.step(Number($<HTMLSelectElement>("lesson-step").value));
+      this.beginStep(Number($<HTMLSelectElement>("lesson-step").value));
       this.update();
     };
     for (const [id, delta] of [
@@ -96,25 +104,31 @@ export class ContentRoom {
       );
       this.replay.seek(indices.at(-1) ?? 0);
       this.update();
+      this.playNarration();
     };
     $("replay-auto").onclick = () => {
-      if (this.timer) {
+      if (this.autoPlaying) {
         this.stop();
         return;
       }
-      this.timer = setInterval(() => {
-        if (
-          !this.replay ||
-          this.replay.index === this.replay.frames.length - 1
-        ) {
-          this.stop();
-          return;
-        }
-        this.replay.next();
-        this.update();
-      }, 900);
+      this.autoPlaying = true;
+      const run = ++this.autoRun;
+      const advance = async () => {
+        await this.narration;
+        if (run !== this.autoRun || !this.autoPlaying) return;
+        this.timer = setTimeout(() => {
+          if (run !== this.autoRun || !this.replay) return;
+          if (this.replay.index === this.replay.frames.length - 1) { this.stop(); return; }
+          this.replay.next();
+          this.update();
+          void advance();
+        }, 900);
+      };
+      void advance();
       $("replay-auto").textContent = "Pause";
     };
+    $("replay-narration").onclick = () => this.playNarration();
+    $("stop-narration").onclick = () => { this.stop(); };
     $("exercise-form").onsubmit = (e) => {
       e.preventDefault();
       this.answer($<HTMLInputElement>("exercise-answer").value);
@@ -155,6 +169,8 @@ export class ContentRoom {
   ): Promise<void> {
     this.stop();
     this.mode = mode;
+    $("replay-narration").hidden = mode !== "classroom";
+    $("stop-narration").hidden = mode !== "classroom";
     this.replay = undefined;
     this.override = undefined;
     const request = ++this.request;
@@ -242,10 +258,11 @@ export class ContentRoom {
       `${select.options.length} of ${items.length} ${this.mode === "classroom" ? "lessons" : "games"}`;
     if (select.value) this.select(select.value);
     else {
+      this.stop();
       this.replay = undefined;
       $("content-text").textContent = "No matching content.";
       $("content-progress").textContent = "No selection";
-      this.changed();
+      this.update();
     }
   }
   private select(id: string): void {
@@ -258,6 +275,7 @@ export class ContentRoom {
     if (this.mode === "classroom") {
       const lesson = this.lessons.find((l) => l.id === id)!;
       this.replay = new ReplayController(lessonFrames(lesson));
+      this.beginStep(0);
       lesson.steps.forEach((s, i) => {
         const o = document.createElement("option");
         o.value = String(i);
@@ -265,7 +283,7 @@ export class ContentRoom {
         step.append(o);
       });
       $("content-source").textContent =
-        `${lesson.source} · SHA-256 ${lesson.sha256} · Original text; narration unavailable`;
+        `${lesson.source} · SHA-256 ${lesson.sha256} · Original text and recovered narration`;
     } else {
       const game = this.activeGames.find((g) => g.id === id)!;
       if (game.error) {
@@ -305,10 +323,20 @@ export class ContentRoom {
     this.picked.clear();
     $("content-feedback").textContent = "";
     const frame = this.current;
+    const imageRun = ++this.imageRun;
+    $<HTMLImageElement>("lesson-illustration").hidden = true;
     if (!frame) {
+      $<HTMLImageElement>("lesson-illustration").removeAttribute("src");
+      $("content-raw").textContent = "";
+      $("content-source").textContent = "";
+      $("exercise").hidden = true;
+      $<HTMLButtonElement>("replay-narration").disabled = true;
+      $<HTMLButtonElement>("stop-narration").disabled = true;
       this.changed();
       return;
     }
+    $<HTMLButtonElement>("replay-narration").disabled = this.mode !== "classroom";
+    $<HTMLButtonElement>("stop-narration").disabled = this.mode !== "classroom";
     $("content-raw").textContent =
       this.mode === "classroom"
         ? (this.lessons.find((l) => l.id === this.selected)?.steps[frame.step]
@@ -324,6 +352,19 @@ export class ContentRoom {
       ? `Original arrows: ${frame.arrows.join(", ")}`
       : "";
     const exercise = frame.exercise;
+    if (frame.moveSound) this.audio.events([frame.moveSound]);
+    this.narration = this.mode === "classroom" ? this.audio.narrate(frame.media) : Promise.resolve();
+    if (frame.illustration) {
+      const reference = frame.illustration;
+      void this.audio.illustration(reference).then(url => {
+        if (imageRun !== this.imageRun) return;
+        const image = $<HTMLImageElement>("lesson-illustration");
+        image.alt = "Original lesson illustration: " + reference;
+        image.onerror = () => { if (imageRun === this.imageRun) { image.hidden = true; $("content-warning").textContent = "Original illustration could not load: " + reference; } };
+        image.src = url;
+        image.hidden = false;
+      }).catch(error => { if (imageRun === this.imageRun) $("content-warning").textContent = String(error); });
+    }
     $("exercise").hidden = !exercise;
     $("exercise-prompt").textContent = exercise?.prompt ?? "";
     const choices = $("exercise-choices");
@@ -333,6 +374,8 @@ export class ContentRoom {
         const b = document.createElement("button");
         b.textContent = choice.label;
         b.onclick = () => {
+          this.stop();
+          this.narration = this.audio.narrate(choice.media ?? []);
           $("content-feedback").textContent =
             choice.feedback +
             (choice.sourceScore
@@ -385,6 +428,8 @@ export class ContentRoom {
       (ex.kind === "I"
         ? (ex.answer?.match(/[a-h][1-8]/g) ?? []).sort().join("")
         : normalize(ex.answer ?? ""));
+    this.stop();
+    this.narration = this.audio.narrate(correct ? ex.correctMedia ?? [] : ex.incorrectMedia ?? []);
     $("content-feedback").textContent = correct
       ? ex.correctFeedback || "Correct according to the lesson answer."
       : ex.incorrectFeedback ||
@@ -395,6 +440,7 @@ export class ContentRoom {
       /^[a-h][1-8][a-h][1-8]$/.test(answer)
     ) {
       const next = { ...this.board };
+      this.audio.events([next[answer.slice(2)] ? "Capture" : next[answer.slice(0, 2)] === next[answer.slice(0, 2)]?.toUpperCase() ? "WhiteMove" : "BlackMove"]);
       next[answer.slice(2)] = next[answer.slice(0, 2)];
       delete next[answer.slice(0, 2)];
       this.override = next;
@@ -402,8 +448,22 @@ export class ContentRoom {
     }
   }
   stop(): void {
-    clearInterval(this.timer);
+    ++this.autoRun;
+    this.autoPlaying = false;
+    clearTimeout(this.timer);
     this.timer = undefined;
+    this.audio.stop();
     $("replay-auto").textContent = "Play demonstration";
+  }
+  private beginStep(step: number): void {
+    this.replay?.step(step);
+    const firstCue = this.replay?.frames.findIndex(f => f.step === step && f.media.length > 0);
+    if (firstCue !== undefined && firstCue >= 0) this.replay?.seek(firstCue);
+  }
+  playNarration(): void {
+    if (this.mode !== "classroom" || !this.replay) return;
+    this.stop();
+    const step = this.replay.current.step;
+    this.narration = this.audio.narrate(this.replay.frames.filter(f => f.step === step).flatMap(f => f.media));
   }
 }
