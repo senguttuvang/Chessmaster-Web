@@ -52,6 +52,10 @@ hosting it is a separate distribution decision, not authorized by the MIT licens
 
 ## History, contribution and rights
 
+Ongoing maintainer work and deployment to `chessmaster9000.com` use a separate
+private internal repository. This community copy receives reviewed source-only
+exports and has no production deployment configuration.
+
 - [Engineering history](docs/engineering-history.md): a retrospective account,
   not fabricated/backdated original commits.
 - [Architecture and recovery procedure](docs/reconstruction.md).

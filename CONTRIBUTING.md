@@ -1,5 +1,10 @@
 # Contributing
 
+Maintainer development and production releases happen in the private internal
+repository. This community repository receives reviewed source-only exports;
+it is not the production checkout. Community forks and contributions must retain
+the same media boundary. No original-derived payload should be attached to a PR.
+
 Start from the source-only checkout. Install dependencies with `make setup`, then
 run `make check` without game media. Synthetic unit tests cover translation
 primitives, protocol, lesson directives and browser-local data logic. The release
