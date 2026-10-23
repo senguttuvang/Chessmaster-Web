@@ -2,6 +2,7 @@ import { Chess, type Square, type PieceSymbol, type Color } from "chess.js";
 import { Effect, Schema } from "effect";
 import { engineMove, RING_SIZE, sendCommand } from "./protocol";
 import "./style.css";
+import { DatabaseRoom } from "./database-room";
 import { RoomNavigation } from "./navigation";
 import { ContentRoom } from "./content-room";
 import { room, wireRoomControls } from "./room";
@@ -258,7 +259,7 @@ function render(): void {
   originalBoard?.update(pieces, displayFlipped, captured);
   if (contentRoom?.active) {
     $("status").textContent =
-      `${contentRoom.mode === "classroom" ? "Classroom" : "Library"} replay. Use the replay controls or answer the original exercise.`;
+      `${contentRoom.mode === "classroom" ? "Classroom" : contentRoom.mode === "database" ? "Database" : "Library"} replay. Use the replay controls or answer the original exercise.`;
     $("move-count").textContent = "Replay";
   }
   updateClocks();
@@ -504,17 +505,22 @@ contentRoom = new ContentRoom(render, (fen) => {
   navigation?.show("game");
   void startGame(fen);
 });
-navigation = new RoomNavigation(contentRoom, (id) => {
-  const select = $<HTMLSelectElement>("personality");
-  if (![...select.options].some((o) => o.value === id)) {
-    status(
-      "Personality data is not ready. Wait for loading or reopen Game settings.",
-    );
-    return;
-  }
-  select.value = id;
-  select.dispatchEvent(new Event("change"));
-});
+const databaseRoom = new DatabaseRoom(contentRoom, () => game.pgn());
+navigation = new RoomNavigation(
+  contentRoom,
+  (id) => {
+    const select = $<HTMLSelectElement>("personality");
+    if (![...select.options].some((o) => o.value === id)) {
+      status(
+        "Personality data is not ready. Wait for loading or reopen Game settings.",
+      );
+      return;
+    }
+    select.value = id;
+    select.dispatchEvent(new Event("change"));
+  },
+  () => databaseRoom.open(),
+);
 OriginalBoard.create(
   $("board-stage"),
   board,

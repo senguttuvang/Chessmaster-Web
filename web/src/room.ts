@@ -12,7 +12,7 @@ export const room = `
     <details><summary>Actions</summary><div class="menu-popup"><button data-action="flip">Rotate Board</button></div></details>
     <details><summary>Preferences</summary><div class="menu-popup"><button data-action="settings">Board and Game Settings…</button><button data-action="toggle-view">Switch 2D / True 3D</button></div></details>
     <details><summary>Windows</summary><div class="menu-popup"><button data-show="shortcuts">Shortcuts</button><button data-show="game-status">Game Status</button><button data-show="captured-window">Captured Pieces</button><button id="restore-windows">Restore Window Layout</button></div></details>
-    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-home">Home</button><button data-action="room-kids">Kids Room</button><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button disabled>Other rooms · pending recovery</button></div></details>
+    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-home">Home</button><button data-action="room-kids">Kids Room</button><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button data-action="room-database">Database</button><button disabled>Other rooms · pending recovery</button></div></details>
     <details><summary>Help</summary><div class="menu-popup"><button data-action="about">About this Reconstruction…</button></div></details>
   </nav>
   <div class="room-body">
@@ -29,7 +29,7 @@ export const room = `
       ]
         .map(
           ([name, label]) =>
-            `<button ${["classroom", "library", "kids"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
+            `<button ${["classroom", "library", "kids", "database"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
         )
         .join("")}
     </nav>
@@ -42,6 +42,7 @@ export const room = `
             ["classroom", "Classroom"],
             ["library", "Library"],
             ["kids", "Kids Room"],
+            ["database", "Database"],
           ]
             .map(
               ([id, label]) =>
@@ -54,7 +55,8 @@ export const room = `
       </section>
       <section id="content-panel" class="content-panel floating" hidden>
         <header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2 id="content-title">Classroom</h2></header>
-        <div class="content-body"><label for="content-search">Search original content</label><input id="content-search" type="search"><p id="content-count"></p>
+        <div class="content-body">
+        <section id="database-controls"><h3>Local PGN database</h3><label for="database-file">Import PGN file</label><input id="database-file" type="file" accept=".pgn,text/plain"><label for="database-pgn">Or paste PGN</label><textarea id="database-pgn" rows="4"></textarea><button id="database-import">Import PGN</button><button id="database-save-game">Save Game Room game</button><button id="database-export">Export all</button><button id="database-export-selected">Export selected</button><button id="database-delete">Delete selected</button><details><summary>Storage recovery</summary><button id="database-raw">Export raw stored data</button><button id="database-reset">Reset local database</button></details><p id="database-message" role="status"></p></section><label for="content-search">Search lessons or games</label><input id="content-search" type="search"><p id="content-count"></p>
         <label for="content-select">Choose a lesson or game</label><select id="content-select"></select><label id="lesson-step-label" for="lesson-step">Lesson step</label><select id="lesson-step"></select>
         <div class="replay-controls"><button id="replay-first" aria-label="First replay frame">|◀</button><button id="replay-previous" aria-label="Previous replay frame">◀</button><button id="replay-next" aria-label="Next replay frame">▶</button><button id="replay-last" aria-label="Last replay frame">▶|</button></div>
         <p id="content-progress" role="status"></p><button id="replay-auto">Play demonstration</button><button id="replay-step-end">Show complete step</button>

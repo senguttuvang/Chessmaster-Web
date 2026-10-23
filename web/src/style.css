@@ -978,3 +978,8 @@ textarea {
     min-width: 100px;
   }
 }
+#database-controls { display: none; }
+.workspace[data-room=database] #database-controls { display: block; padding-bottom: 14px; border-bottom: 1px solid #a58c55; }
+#database-controls textarea { width:100%;resize:vertical;font:inherit; }
+#database-controls button { margin: 5px 4px 5px 0; }
+#database-message { line-height: 1.5; overflow-wrap: anywhere; }

@@ -28,14 +28,25 @@ const GamesSchema = Schema.Struct({
   schemaVersion: Schema.Literal(1),
   games: Schema.Array(GameSchema),
 });
-type Game = Schema.Schema.Type<typeof GameSchema>;
+export type Game = Schema.Schema.Type<typeof GameSchema>;
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 export class ContentRoom {
-  mode: "game" | "classroom" | "library" = "game";
+  mode: "game" | "classroom" | "library" | "database" = "game";
   replay: ReplayController | undefined;
   private lessons: readonly Lesson[] = [];
   private games: readonly Game[] = [];
+  private databaseGames: readonly Game[] = [];
+  get selectedId() {
+    return this.selected;
+  }
+  private get activeGames() {
+    return this.mode === "database" ? this.databaseGames : this.games;
+  }
+  async openDatabase(games: readonly Game[]): Promise<void> {
+    this.databaseGames = games;
+    await this.open("database");
+  }
   private timer: ReturnType<typeof setInterval> | undefined;
   private selected = "";
   private override: Diagram | undefined;
@@ -128,7 +139,9 @@ export class ContentRoom {
   get board() {
     return this.override ?? this.current?.board;
   }
-  async open(mode: "game" | "classroom" | "library"): Promise<void> {
+  async open(
+    mode: "game" | "classroom" | "library" | "database",
+  ): Promise<void> {
     this.stop();
     this.mode = mode;
     this.replay = undefined;
@@ -139,7 +152,10 @@ export class ContentRoom {
       .classList.toggle("content-mode", this.active);
     document
       .querySelector(".workspace")!
-      .classList.toggle("library-mode", mode === "library");
+      .classList.toggle(
+        "library-mode",
+        mode === "library" || mode === "database",
+      );
     $("content-panel").hidden = !this.active;
     for (const [id, name] of [
       ["room-game", "game"],
@@ -148,7 +164,11 @@ export class ContentRoom {
     ])
       $(id).setAttribute("aria-current", mode === name ? "page" : "false");
     $("content-title").textContent =
-      mode === "classroom" ? "Classroom" : "Library";
+      mode === "classroom"
+        ? "Classroom"
+        : mode === "database"
+          ? "Database"
+          : "Library";
     $("content-feedback").textContent = "";
     $("content-text").textContent = "";
     if (!this.active) {
@@ -187,15 +207,16 @@ export class ContentRoom {
     const query = $<HTMLInputElement>("content-search").value.toLowerCase();
     const select = $<HTMLSelectElement>("content-select");
     select.replaceChildren();
-    const items =
+    const items: { id: string; title: string; search?: string }[] =
       this.mode === "classroom"
         ? this.lessons.map((l) => ({ id: l.id, title: l.title }))
-        : this.games.map((g) => ({
+        : this.activeGames.map((g) => ({
             id: g.id,
-            title: `${g.headers.White} — ${g.headers.Black} · ${g.headers.Date} · ${g.headers.Result}`,
+            search: g.pgn,
+            title: `${g.headers.White ?? "White"} — ${g.headers.Black ?? "Black"}${g.headers.Date ? " · " + g.headers.Date : ""}${g.headers.Result ? " · " + g.headers.Result : ""}`,
           }));
     for (const item of items.filter((i) =>
-      i.title.toLowerCase().includes(query),
+      (i.search ?? i.title).toLowerCase().includes(query),
     )) {
       const option = document.createElement("option");
       option.value = item.id;
@@ -233,7 +254,7 @@ export class ContentRoom {
       $("content-source").textContent =
         `${lesson.source} · SHA-256 ${lesson.sha256} · Original text; narration unavailable`;
     } else {
-      const game = this.games.find((g) => g.id === id)!;
+      const game = this.activeGames.find((g) => g.id === id)!;
       if (game.error) {
         this.replay = undefined;
         $("content-feedback").textContent = game.error;
@@ -261,7 +282,7 @@ export class ContentRoom {
         })),
       );
       $("content-source").textContent =
-        `CLASSICG.PGN · ${game.headers.Site ?? ""} · ${game.headers.Event ?? ""} · Original game and comments`;
+        `${this.mode === "database" ? "Local PGN" : "CLASSICG.PGN"} · ${game.headers.Site ?? ""} · ${game.headers.Event ?? ""} · Original game and comments`;
     }
     this.update();
   }
@@ -279,7 +300,7 @@ export class ContentRoom {
       this.mode === "classroom"
         ? (this.lessons.find((l) => l.id === this.selected)?.steps[frame.step]
             ?.raw ?? "")
-        : (this.games.find((g) => g.id === this.selected)?.pgn ?? "");
+        : (this.activeGames.find((g) => g.id === this.selected)?.pgn ?? "");
     $("content-text").textContent =
       frame.text || "Use Next to follow the original demonstration.";
     $("content-progress").textContent =
