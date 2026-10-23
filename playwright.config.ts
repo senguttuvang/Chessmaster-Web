@@ -4,16 +4,16 @@ export default defineConfig({
   timeout: 45000,
   workers: 1,
   use: {
-    baseURL: "http://127.0.0.1:9001",
+    baseURL: "http://127.0.0.1:9011",
     channel: "chrome",
     headless: true,
     viewport: { width: 1280, height: 950 },
   },
   webServer: {
     command:
-      "bun node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 9001 --strictPort",
-    url: "http://127.0.0.1:9001",
-    reuseExistingServer: !process.env.CI,
+      "bun node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 9011 --strictPort",
+    url: "http://127.0.0.1:9011",
+    reuseExistingServer: false,
   },
   reporter: "list",
   outputDir: "output/playwright",
