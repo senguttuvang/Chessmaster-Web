@@ -42,7 +42,7 @@ wasm:
 check:
 	mkdir -p build
 	$(PY) -m unittest discover -s tests -p test_translation.py
-	bun test tests/protocol.test.ts tests/database.test.ts tests/tournament.test.ts tests/replay.test.ts tests/release.test.ts
+	bun test ./tests/protocol.test.ts ./tests/database.test.ts ./tests/tournament.test.ts ./tests/replay.test.ts ./tests/release.test.ts
 	bun run typecheck
 	bun run build
 	bun tools/release/check.ts
@@ -51,7 +51,7 @@ check:
 check-media:
 	$(MAKE) native wasm
 	$(PY) -m unittest discover -s tests -p 'test_*.py'
-	bun test tests/*.test.ts
+	bun test ./tests/*.test.ts
 	bun run typecheck
 	bun run build
 	bun run test:browser

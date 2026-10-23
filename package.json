@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 9000 --strictPort",
     "typecheck": "tsc --noEmit",
-    "test": "bun test tests/protocol.test.ts tests/database.test.ts tests/tournament.test.ts tests/replay.test.ts tests/release.test.ts",
+    "test": "bun test ./tests/protocol.test.ts ./tests/database.test.ts ./tests/tournament.test.ts ./tests/replay.test.ts ./tests/release.test.ts",
     "test:browser": "playwright test"
   },
   "dependencies": {
