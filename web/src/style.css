@@ -780,3 +780,108 @@ textarea {
 .panel-title {
   font-family: CM9000, Tahoma, sans-serif;
 }
+.content-panel {
+  right: 15px;
+  top: 15px;
+  width: 385px;
+  max-height: calc(100dvh - 120px);
+  overflow: auto;
+}
+.content-body {
+  padding: 14px;
+}
+.content-body label {
+  display: block;
+  margin: 8px 0 4px;
+}
+.content-body select,
+.content-body input {
+  width: 100%;
+  max-width: 100%;
+  font: inherit;
+  padding: 6px;
+  background: #fff8e4;
+  color: #251f0e;
+  border: 1px solid #76623f;
+}
+.content-mode #shortcuts,
+.content-mode #game-status,
+.content-mode #captured-window {
+  display: none;
+}
+.content-mode .board-area {
+  width: calc(100% - 400px);
+  margin-left: 0;
+  margin-top: 15px;
+}
+.replay-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+.replay-controls button {
+  flex: 1;
+  min-height: 34px;
+}
+#content-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.content-source {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+#content-warning {
+  color: #7e2a18;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+#content-feedback {
+  color: #33290e;
+  line-height: 1.5;
+}
+#exercise-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#exercise {
+  border-top: 1px solid #9f8d60;
+  padding-top: 10px;
+}
+@media (max-width: 900px) {
+  .content-mode .board-area {
+    width: 100%;
+    margin: 0;
+  }
+  .content-panel {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: calc(100% - 20px);
+    max-height: none;
+    margin: 10px;
+  }
+}
+.library-mode #lesson-step-label,
+.library-mode #replay-step-end {
+  display: none;
+}
+#content-raw {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .workspace.content-mode {
+    display: flex;
+    flex-direction: column;
+  }
+  .content-mode .board-area {
+    order: 0;
+  }
+  .content-mode .content-panel {
+    order: 1;
+  }
+}

@@ -12,7 +12,7 @@ export const room = `
     <details><summary>Actions</summary><div class="menu-popup"><button data-action="flip">Rotate Board</button></div></details>
     <details><summary>Preferences</summary><div class="menu-popup"><button data-action="settings">Board and Game Settings…</button><button data-action="toggle-view">Switch 2D / True 3D</button></div></details>
     <details><summary>Windows</summary><div class="menu-popup"><button data-show="shortcuts">Shortcuts</button><button data-show="game-status">Game Status</button><button data-show="captured-window">Captured Pieces</button><button id="restore-windows">Restore Window Layout</button></div></details>
-    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-game">Game Room</button><button disabled>Other rooms · not recovered</button></div></details>
+    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button disabled>Other rooms · pending recovery</button></div></details>
     <details><summary>Help</summary><div class="menu-popup"><button data-action="about">About this Reconstruction…</button></div></details>
   </nav>
   <div class="room-body">
@@ -29,11 +29,21 @@ export const room = `
       ]
         .map(
           ([name, label]) =>
-            `<button disabled title="${label} is not implemented" aria-label="${label} · not implemented">${image(name)}</button>`,
+            `<button ${["classroom", "library"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
         )
         .join("")}
     </nav>
     <div class="workspace">
+      <section id="content-panel" class="content-panel floating" hidden>
+        <header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2 id="content-title">Classroom</h2></header>
+        <div class="content-body"><label for="content-search">Search original content</label><input id="content-search" type="search"><p id="content-count"></p>
+        <label for="content-select">Choose a lesson or game</label><select id="content-select"></select><label id="lesson-step-label" for="lesson-step">Lesson step</label><select id="lesson-step"></select>
+        <div class="replay-controls"><button id="replay-first" aria-label="First replay frame">|◀</button><button id="replay-previous" aria-label="Previous replay frame">◀</button><button id="replay-next" aria-label="Next replay frame">▶</button><button id="replay-last" aria-label="Last replay frame">▶|</button></div>
+        <p id="content-progress" role="status"></p><button id="replay-auto">Play demonstration</button><button id="replay-step-end">Show complete step</button>
+        <p id="content-text"></p><p id="content-cues"></p><p id="content-warning"></p>
+        <section id="exercise" hidden><h3>Original exercise</h3><p id="exercise-prompt"></p><div id="exercise-choices"></div><form id="exercise-form"><label for="exercise-answer">Your answer (or select move squares)</label><input id="exercise-answer" autocomplete="off"><button>Check answer</button></form></section>
+        <p id="content-feedback" role="status"></p><button id="play-replay">Play this position against The King</button><p class="content-source" id="content-source"></p><details><summary>Original source text</summary><pre id="content-raw"></pre></details></div>
+      </section>
       <section class="board-area" aria-label="Play chess">
         <div class="board-stage" id="board-stage"><div id="board" role="group" aria-label="Chessboard"></div></div>
         <div class="board-controls"><button id="toggle-view">2D view</button><button id="flip">Rotate board</button><span id="move-count">Move 1</span></div>
@@ -69,7 +79,7 @@ export const room = `
 <p>Opponent, side or depth changes start a new game.</p><div class="opponent-details"><img id="portrait" src="/assets/wk.png" alt="Opponent portrait"><strong id="opponent-name">The King</strong><p id="opponent-style">The original Chessmaster 9000 engine.</p></div><p id="profile-note">Original personality ratings are uncalibrated for this browser runtime.</p><button id="close-settings">Return to game</button></dialog>
 <dialog id="promotion"><h2>Promote your pawn</h2><p>Choose a piece to complete your move.</p><div class="promotion-options"></div></dialog>
 <dialog id="position-dialog"><h2>Load a chess position</h2><form id="position-form"><label for="fen">Position in FEN notation</label><textarea id="fen" rows="4" required spellcheck="false"></textarea><p id="position-error" role="alert"></p><button type="submit">Start from position</button><button id="cancel-position" type="button">Cancel</button></form></dialog>
-<dialog id="about-dialog"><h2>Chessmaster 9000, reconstructed</h2><p>The King 3.23's original x86 instructions are translated into C and compiled to WebAssembly. The engine runs locally in your browser.</p><p>Original Staunton meshes, wood textures, font, rail artwork and window bitmaps are recovered from the installation. The browser layout, lighting, controls and elapsed clocks are reimplemented. Exact screenshot materials, reflections and original runtime behavior remain unverified.</p><p>Opening books, tablebases, other rooms, rated games and narration are not integrated. Playing strength is unverified. Use Game settings to choose among three recovered board textures.</p><button id="close-about">Return to game</button></dialog>`;
+<dialog id="about-dialog"><h2>Chessmaster 9000, reconstructed</h2><p>The King 3.23's original x86 instructions are translated into C and compiled to WebAssembly. The engine runs locally in your browser.</p><p>Original Staunton meshes, wood textures, font, rail artwork and window bitmaps are recovered from the installation. The browser layout, lighting, controls and elapsed clocks are reimplemented. Exact screenshot materials, reflections and original runtime behavior remain unverified.</p><p>Classroom and Library use recovered original lesson text and classic games. Other rooms, opening books, tablebases, rated games and narration are not integrated. Playing strength is unverified. Use Game settings to choose among three recovered board textures.</p><button id="close-about">Return to game</button></dialog>`;
 
 /** Reimplemented browser menu/window behavior, independent of game state. */
 export function wireRoomControls(): void {
