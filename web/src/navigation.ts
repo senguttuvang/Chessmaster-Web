@@ -1,5 +1,6 @@
 import type { ContentRoom } from "./content-room";
-export type RoomName = "home" | "game" | "classroom" | "library" | "kids";
+export type RoomName =
+  "home" | "game" | "classroom" | "library" | "kids" | "database";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 export class RoomNavigation {
@@ -7,6 +8,7 @@ export class RoomNavigation {
   constructor(
     private content: ContentRoom,
     private profile: (id: string) => void,
+    private database: () => void,
   ) {
     for (const room of [
       "home",
@@ -14,6 +16,7 @@ export class RoomNavigation {
       "classroom",
       "library",
       "kids",
+      "database",
     ] as const)
       $(`room-${room}`).onclick = () => this.show(room);
     for (const b of document.querySelectorAll<HTMLButtonElement>(
@@ -48,12 +51,20 @@ export class RoomNavigation {
     $("kids-content").hidden = room !== "kids";
     $("landing-title").textContent = room === "kids" ? "Kids Room" : "Home";
     $("landing-message").textContent = "";
-    if (lessonId) void this.content.openLesson(lessonId);
+    if (room === "database") this.database();
+    else if (lessonId) void this.content.openLesson(lessonId);
     else
       void this.content.open(
         room === "classroom" || room === "library" ? room : "game",
       );
-    for (const id of ["home", "game", "classroom", "library", "kids"])
+    for (const id of [
+      "home",
+      "game",
+      "classroom",
+      "library",
+      "kids",
+      "database",
+    ])
       $(`room-${id}`).setAttribute(
         "aria-current",
         id === room ? "page" : "false",

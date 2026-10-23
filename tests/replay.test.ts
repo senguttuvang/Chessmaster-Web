@@ -8,7 +8,7 @@ import {
   fields,
   type Lesson,
 } from "../web/src/replay";
-import { recoverGames, normalizeLegacyPgn } from "../tools/recover_games";
+import { parsePgnGames, normalizeLegacyPgn } from "../web/src/pgn";
 
 test("teaching diagrams expand multi-rank empties without inventing kings", () => {
   const d = diagram("32/3R4/24 BLACK");
@@ -68,7 +68,7 @@ test("legacy PGN adaptations affect notation only and real recovered games all r
   const n = normalizeLegacyPgn(pgn);
   expect(n).toContain('[Event "x?!"]');
   expect(n).toContain("{keep ?! bxc3ep 36 text}");
-  expect(recoverGames(pgn)[0].frames).toHaveLength(3);
+  expect(parsePgnGames(pgn)[0].frames).toHaveLength(3);
   const games = await Bun.file("web/public/content/games.json").json();
   expect(games.games).toHaveLength(825);
   expect(games.games.filter((g: { error: unknown }) => g.error)).toHaveLength(
