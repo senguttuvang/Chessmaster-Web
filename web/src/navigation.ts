@@ -18,7 +18,6 @@ export class RoomNavigation {
     private database: () => void,
     private tournament: () => void,
     private live: () => void,
-    private viewed: (room: RoomName) => void = () => {},
   ) {
     for (const room of [
       "home",
@@ -54,7 +53,6 @@ export class RoomNavigation {
   }
   show(room: RoomName, lessonId?: string): void {
     this.current = room;
-    this.viewed(room);
     const landing = room === "home" || room === "kids";
     const workspace = document.querySelector<HTMLElement>(".workspace")!;
     workspace.dataset.room = room;

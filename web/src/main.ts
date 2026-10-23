@@ -9,17 +9,6 @@ import { RoomNavigation } from "./navigation";
 import { ContentRoom } from "./content-room";
 import { room, wireRoomControls } from "./room";
 import { OriginalBoard, type CapturedPiece } from "./board3d";
-import { BrowserAudio, moveSoundEvents } from "./audio";
-import "./audio.css";
-import { GameplayAnalytics, boundedDuration } from "./analytics";
-import { analyticsConfig } from "./analytics-config";
-
-const analytics = new GameplayAnalytics(analyticsConfig);
-analytics.start();
-let engineLoadStarted = performance.now();
-let gameStarted = performance.now();
-let gameCompletionTracked = false;
-let engineFailureTracked = false;
 
 type Personality = {
   id: string;
@@ -34,31 +23,6 @@ app.innerHTML = room;
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
-const audio = new BrowserAudio(message => {
-  $("audio-status").textContent = message;
-  if (/unavailable|missing|blocked|defect|could not/i.test(message))
-    $("audio-error").textContent = message;
-}, channel => analytics.event("audio_playback", { audio_channel: channel }));
-$<HTMLInputElement>("sound-enabled").checked = audio.enabled;
-$<HTMLInputElement>("narration-enabled").checked = audio.narrationEnabled;
-$<HTMLInputElement>("sound-volume").value = String(audio.volume);
-$("audio-status").textContent = audio.enabled ? "Original sounds play with your actions." : "Sound muted.";
-document.addEventListener("pointerdown", () => audio.unlock(), true);
-document.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") audio.unlock(); }, true);
-function configureAudio(): void {
-  $("audio-error").textContent = "";
-  audio.configure($<HTMLInputElement>("sound-enabled").checked,
-    $<HTMLInputElement>("narration-enabled").checked,
-    Number($<HTMLInputElement>("sound-volume").value));
-}
-for (const id of ["sound-enabled", "narration-enabled", "sound-volume"])
-  $(id).addEventListener("change", configureAudio);
-$("enable-sound").onclick = () => {
-  $<HTMLInputElement>("sound-enabled").checked = true;
-  configureAudio();
-  contentRoom?.playNarration();
-};
-$("stop-sound").onclick = () => { contentRoom?.stop(); audio.stop(); $("audio-status").textContent = "Sound stopped."; };
 const board = $("board");
 const game = new Chess();
 let originalBoard: OriginalBoard | undefined;
@@ -123,13 +87,6 @@ const command = (text: string) => {
 };
 
 function fail(message: string): void {
-  if (!engineFailureTracked) {
-    engineFailureTracked = true;
-    analytics.event("engine_load_failed", {
-      engine_phase: ready ? "runtime" : "load",
-      load_ms: boundedDuration(performance.now() - engineLoadStarted),
-    });
-  }
   ready = false;
   thinking = false;
   clearTimeout(deadline);
@@ -308,15 +265,6 @@ function render(): void {
       `${$("content-title").textContent} replay. Use the replay controls or answer the original exercise.`;
     $("move-count").textContent = "Replay";
   }
-  if (ready && game.isGameOver() && !gameCompletionTracked) {
-    gameCompletionTracked = true;
-    analytics.event("game_completed", {
-      game_result: game.isCheckmate() ? (game.turn() === "w" ? "black_win" : "white_win") : "draw",
-      finish_reason: game.isCheckmate() ? "checkmate" : game.isStalemate() ? "stalemate"
-        : game.isThreefoldRepetition() ? "repetition" : game.isInsufficientMaterial() ? "insufficient_material" : "draw",
-      duration_ms: boundedDuration(performance.now() - gameStarted),
-    });
-  }
   tournamentRoom?.observe(game, generation);
   updateClocks();
 }
@@ -346,7 +294,6 @@ async function choose(square: Square): Promise<void> {
       selected = null;
       updateClocks();
       const move = game.move({ from, to: square, promotion });
-      audio.events(moveSoundEvents(move, game));
       command("force\n" + move.from + move.to + (move.promotion ?? ""));
       if (!game.isGameOver()) {
         thinking = true;
@@ -358,7 +305,6 @@ async function choose(square: Square): Promise<void> {
       return;
     }
   }
-  if (selected && selected !== square && piece?.color !== human()) audio.events(["IllegalMove"]);
   selected = piece?.color === human() && selected !== square ? square : null;
   render();
 }
@@ -390,12 +336,7 @@ function watchReply(): void {
   );
 }
 
-async function startGame(fen?: string, source: "initial" | "new_game" | "settings" | "position" | "lesson" | "tournament" = "new_game"): Promise<void> {
-  engineLoadStarted = performance.now();
-  gameStarted = engineLoadStarted;
-  gameCompletionTracked = false;
-  engineFailureTracked = false;
-  audio.stop();
+async function startGame(fen?: string): Promise<void> {
   const current = ++generation;
   reviewPly = null;
   elapsed = { w: 0, b: 0 };
@@ -445,7 +386,6 @@ async function startGame(fen?: string, source: "initial" | "new_game" | "setting
             return;
           }
           if (type === "ready") {
-            if (ready) return;
             command(
               "xboard\nnew\nforce\ncm_parm default\ncm_parm tts=16777216",
             );
@@ -455,8 +395,6 @@ async function startGame(fen?: string, source: "initial" | "new_game" | "setting
             command(`sd ${$<HTMLSelectElement>("depth").value}\nst 2`);
             if (fen) command(`setboard ${fen}`);
             ready = true;
-            analytics.event("engine_ready", { load_ms: boundedDuration(performance.now() - engineLoadStarted) });
-            analytics.event("game_started", { game_source: source, human_side: human() });
             $("connection").textContent = "The King · Ready";
             $("engine-state").textContent = "The King 3.23 · WebAssembly";
             if (game.turn() !== human() && !game.isGameOver()) {
@@ -483,12 +421,11 @@ async function startGame(fen?: string, source: "initial" | "new_game" | "setting
               }
               try {
                 updateClocks();
-                const played = game.move({
+                game.move({
                   from: move.slice(0, 2),
                   to: move.slice(2, 4),
                   promotion: move[4],
                 });
-                if (navigation?.current === "game") audio.events(moveSoundEvents(played, game));
               } catch {
                 fail(`The engine returned an illegal move: ${move}.`);
                 return;
@@ -570,8 +507,8 @@ function contentPiece(square: string) {
 wireRoomControls();
 contentRoom = new ContentRoom(render, (fen) => {
   navigation?.show("game");
-  void startGame(fen, "lesson");
-}, audio, () => analytics.event("lesson_opened", {}));
+  void startGame(fen);
+});
 const databaseRoom = new DatabaseRoom(contentRoom, () => game.pgn());
 tournamentRoom = new TournamentRoom(
   contentRoom,
@@ -583,7 +520,7 @@ tournamentRoom = new TournamentRoom(
     $<HTMLSelectElement>("side").value = color;
     navigation?.show("game");
     const expected = generation + 1;
-    void startGame(undefined, "tournament");
+    void startGame();
     return expected;
   },
   () => game.pgn(),
@@ -618,7 +555,6 @@ navigation = new RoomNavigation(
   () => databaseRoom.open(),
   () => void tournamentRoom!.open(),
   () => void liveRoom.open(),
-  room => analytics.page(room),
 );
 OriginalBoard.create(
   $("board-stage"),
@@ -627,7 +563,6 @@ OriginalBoard.create(
   rendererError,
 )
   .then((view) => {
-    analytics.event("renderer_ready", { load_ms: boundedDuration(performance.now()) });
     originalBoard = view;
     view.setMaterial($<HTMLSelectElement>("board-material").value);
     setView();
@@ -659,7 +594,7 @@ $("position-form").onsubmit = (event) => {
   }
   $<HTMLDialogElement>("position-dialog").close();
   navigation?.show("game");
-  void startGame(fen, "position");
+  void startGame(fen);
 };
 $("flip").onclick = () => {
   flipped = !flipped;
@@ -680,7 +615,7 @@ $("close-about").onclick = () => $<HTMLDialogElement>("about-dialog").close();
 for (const id of ["side", "depth", "personality"])
   $(id).addEventListener("change", () => {
     $<HTMLDialogElement>("settings-dialog").close();
-    void startGame(undefined, "settings");
+    void startGame();
   });
 render();
 const PersonalitySchema = Schema.Struct({
@@ -712,4 +647,4 @@ fetch("/assets/personalities.json")
     $("profile-note").textContent =
       `Personality data unavailable: ${String(error)}. The default engine is still available.`;
   });
-void startGame(undefined, "initial");
+void startGame();

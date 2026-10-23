@@ -1,4 +1,4 @@
-/** Produce portable offline evidence from committed source recovery, without a service connection. */
+/** Produce local offline evidence from the player's own recovered media. */
 import { plain } from "../web/src/replay";
 import { mkdir } from "node:fs/promises";
 const lessons = await Bun.file("web/public/content/lessons.json").json();
@@ -47,23 +47,25 @@ console.log(
   }),
 );
 
-const code = await Bun.file("recovery/rooms/mpgame.decompiled.c").text();
-const { createHash } = await import("node:crypto");
-const network = {
-  schemaVersion: 1,
-  source: raw.sources.find(
-    (s: { module: string }) => s.module === "MPGAME.DLL",
-  ),
-  tool: "Ghidra 12.2 / JDK25; ExportRoomNetwork.java; static read-only analysis",
-  output: "recovery/rooms/mpgame.decompiled.c",
-  outputSha256: createHash("sha256").update(code).digest("hex"),
-  functions: [...code.matchAll(/\/\* (MPG_\w+) at ([0-9a-f]+) \*\//g)].map(
-    (m) => ({ name: m[1], address: "0x" + m[2] }),
-  ),
-  limits:
-    "Inferred pseudocode only. No original execution or endpoint connection; callback/protocol completeness unverified.",
-};
-await Bun.write(
-  "recovery/rooms/network-analysis.json",
-  JSON.stringify(network, null, 2) + "\n",
-);
+if (process.argv.includes("--network-analysis")) {
+  const code = await Bun.file("recovery/rooms/mpgame.decompiled.c").text();
+  const { createHash } = await import("node:crypto");
+  const network = {
+    schemaVersion: 1,
+    source: raw.sources.find(
+      (s: { module: string }) => s.module === "MPGAME.DLL",
+    ),
+    tool: "Ghidra 12.2 / JDK25; ExportRoomNetwork.java; static read-only analysis",
+    output: "recovery/rooms/mpgame.decompiled.c",
+    outputSha256: createHash("sha256").update(code).digest("hex"),
+    functions: [...code.matchAll(/\/\* (MPG_\w+) at ([0-9a-f]+) \*\//g)].map(
+      (m) => ({ name: m[1], address: "0x" + m[2] }),
+    ),
+    limits:
+      "Inferred pseudocode only. No original execution or endpoint connection; callback/protocol completeness unverified.",
+  };
+  await Bun.write(
+    "recovery/rooms/network-analysis.json",
+    JSON.stringify(network, null, 2) + "\n",
+  );
+}

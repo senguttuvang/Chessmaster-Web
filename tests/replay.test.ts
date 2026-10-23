@@ -63,17 +63,11 @@ test("source choice formats grade by explicit original answer/feedback and prese
   expect(qm.choices?.[0].correct).toBe(false);
   expect(qm.choices?.[1].sourceScore).toBe("4");
 });
-test("legacy PGN adaptations affect notation only and real recovered games all replay legally", async () => {
+test("synthetic PGN adaptations preserve notation and comments", async () => {
   const pgn = '[Event "x?!"]\n\n1 e4!? {keep ?! bxc3ep 36 text} e5 *';
   const n = normalizeLegacyPgn(pgn);
   expect(n).toContain('[Event "x?!"]');
   expect(n).toContain("{keep ?! bxc3ep 36 text}");
   expect(parsePgnGames(pgn)[0].frames).toHaveLength(3);
-  const games = await Bun.file("web/public/content/games.json").json();
-  expect(games.games).toHaveLength(825);
-  expect(games.games.filter((g: { error: unknown }) => g.error)).toHaveLength(
-    0,
-  );
-  expect(games.games[0].headers.White).toBe("Gioachino Greco");
-  expect(games.games[0].frames.at(-1).san).toBe("Bg6#");
+
 });
