@@ -37,6 +37,19 @@ async function move(page: Page, from: string, to: string) {
   await page.locator("[data-square=" + to + "]").click();
 }
 
+test("original media supports native audio byte ranges, HEAD and missing-file 404", async ({request}) => {
+  const index = await (await request.get("/audio/index.json")).json();
+  const url = index.clips["cmsets:WMove.raw"].url;
+  const full = await request.get(url); expect(full.status()).toBe(200);
+  const bytes = await full.body();
+  const range = await request.get(url,{headers:{Range:"bytes=0-15"}});
+  expect(range.status()).toBe(206);
+  expect(await range.body()).toEqual(bytes.subarray(0,16));
+  expect(range.headers()["content-range"]).toBe(`bytes 0-15/${bytes.length}`);
+  const head = await request.head(url); expect(head.status()).toBe(200); expect((await head.body()).length).toBe(0);
+  expect((await request.get("/audio/clips/cmsets/" + "0".repeat(64) + ".wav",{headers:{Accept:"audio/wav"}})).status()).toBe(404);
+});
+
 test("actual human/engine moves, captures, castle, promotion, check and mate play original clips", async ({page}) => {
   await observeAudio(page);
   await page.goto("/");
