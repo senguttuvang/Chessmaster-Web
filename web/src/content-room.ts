@@ -112,6 +112,13 @@ export class ContentRoom {
       this.play(fen);
     };
   }
+  async openLesson(id: string): Promise<void> {
+    await this.open("classroom");
+    if (this.mode === "classroom" && this.lessons.some((l) => l.id === id)) {
+      $<HTMLSelectElement>("content-select").value = id;
+      this.select(id);
+    }
+  }
   get active() {
     return this.mode !== "game";
   }

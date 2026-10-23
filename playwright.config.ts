@@ -4,15 +4,15 @@ export default defineConfig({
   timeout: 45000,
   workers: 1,
   use: {
-    baseURL: "http://127.0.0.1:9021",
+    baseURL: "http://127.0.0.1:9031",
     channel: "chrome",
     headless: true,
     viewport: { width: 1280, height: 950 },
   },
   webServer: {
     command:
-      "bun node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 9021 --strictPort",
-    url: "http://127.0.0.1:9021",
+      "bun node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 9031 --strictPort",
+    url: "http://127.0.0.1:9031",
     reuseExistingServer: false,
   },
   reporter: "list",
