@@ -36,12 +36,14 @@ test("plays black and restarts with recovered personality", async ({
 }) => {
   await page.goto("/");
   await expect(page.locator("#connection")).toContainText("Ready");
+  await page.locator("#settings").click();
   await page.locator("#side").selectOption("b");
   await expect(page.locator("#status")).toContainText("Your move", {
     timeout: 20000,
   });
   await expect(page.locator("#moves li")).toHaveCount(1);
   await expect(page.locator("#moves li")).not.toBeEmpty();
+  await page.locator("#settings").click();
   await page.locator("#personality").selectOption("aaron");
   await expect(page.locator("#opponent-name")).toHaveText("Aaron");
   await expect(page.locator("#status")).toContainText("Your move", {

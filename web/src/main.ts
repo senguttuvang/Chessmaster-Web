@@ -2,6 +2,8 @@ import { Chess, type Square, type PieceSymbol, type Color } from "chess.js";
 import { Effect, Schema } from "effect";
 import { engineMove, RING_SIZE, sendCommand } from "./protocol";
 import "./style.css";
+import { room, wireRoomControls } from "./room";
+import { OriginalBoard, type CapturedPiece } from "./board3d";
 
 type Personality = {
   id: string;
@@ -12,37 +14,41 @@ type Personality = {
   parameters: Record<string, number>;
 };
 const app = document.querySelector<HTMLDivElement>("#app")!;
-app.innerHTML = `
-<main class="game-room">
-  <header class="masthead"><div class="wordmark">Chessmaster <span>9000</span></div><span class="edition">Browser reconstruction</span></header>
-  <div class="window">
-    <div class="titlebar"><h1>Game Room</h1><span id="connection">Starting The King…</span></div>
-    <nav class="menubar" aria-label="Game controls"><button id="new-game">New game</button><button id="load-position">Load position</button><button id="flip">Flip board</button><button id="export">Save PGN</button><button id="about">About this reconstruction</button></nav>
-    <div class="workspace">
-      <section class="board-area" aria-label="Play chess">
-        <div class="player-strip"><span id="top-player">The King</span><span id="turn-note">Original Chessmaster engine</span></div>
-        <div class="board-frame"><div class="files" aria-hidden="true"></div><div id="board" role="group" aria-label="Chessboard"></div><div class="files" aria-hidden="true"></div></div>
-        <div class="player-strip bottom"><span id="bottom-player">You · White</span><span id="move-count">Move 1</span></div>
-        <div class="game-status" id="status" role="status" aria-live="polite">Loading the original engine. Your game will be ready shortly.</div>
-      </section>
-      <aside class="sidebar">
-        <section class="panel opponent"><h2>Opponent</h2><div class="opponent-heading"><img id="portrait" src="/assets/aaron.png" alt="Original Chessmaster character portrait"><div><strong id="opponent-name">The King</strong><p id="opponent-style">The original Chessmaster 9000 engine.</p></div></div><label for="personality">Personality</label><select id="personality"><option value="default">The King · Default</option></select><p class="profile-note" id="profile-note">Original personality settings. Historical ratings are not calibrated for this browser runtime.</p></section>
-        <section class="panel"><h2>Game settings</h2><div class="settings"><label for="side">You play</label><select id="side"><option value="w">White</option><option value="b">Black</option></select><label for="depth">Search depth</label><select id="depth"><option value="2">2 plies · Quick</option><option value="4">4 plies · Standard</option><option value="6">6 plies · Deeper</option></select></div><p class="settings-note">Changing a setting starts a new game.</p></section>
-        <section class="panel notation"><h2>Move list</h2><div class="notation-head" aria-hidden="true"><span>No.</span><span>White</span><span>Black</span></div><ol id="moves" aria-label="Game moves"></ol><p id="empty-moves">Select a piece, then its destination.</p></section>
-      </aside>
-    </div>
-    <footer class="statusbar"><span id="engine-state">Engine loading</span><span>Original pieces & personalities · Reconstructed interface</span></footer>
-  </div>
-  <p class="project-note">A private preservation experiment. Game Room is playable; the original lessons, narration and 3D rooms are not implemented in this build.</p>
-</main>
-<dialog id="promotion"><h2>Promote your pawn</h2><p>Choose a piece to complete your move.</p><div class="promotion-options"></div></dialog>
-<dialog id="position-dialog"><h2>Load a chess position</h2><form id="position-form"><label for="fen">Position in FEN notation</label><textarea id="fen" rows="4" required spellcheck="false"></textarea><p id="position-error" role="alert"></p><button type="submit">Start from position</button><button id="cancel-position" type="button">Cancel</button></form></dialog>
-<dialog id="about-dialog"><h2>Chessmaster 9000, reconstructed</h2><p>The King 3.23's original x86 instructions are translated into C and compiled to WebAssembly. The engine runs locally in your browser.</p><p>The interface is reconstructed using original piece artwork and personality data. Opening books, tablebases, original Windows controls and narrated lessons are not yet integrated. Playing strength is unverified.</p><p><a href="https://github.com/senguttuvang/Chessmaster-Web" target="_blank" rel="noreferrer">Project source and recovery tools</a></p><button id="close-about">Return to game</button></dialog>`;
+app.innerHTML = room;
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const board = $("board");
 const game = new Chess();
+let originalBoard: OriginalBoard | undefined;
+let view3d = true;
+let reviewPly: number | null = null;
+let elapsed = { w: 0, b: 0 };
+let clockTick = performance.now();
+function rendererError(message: string): void {
+  $("renderer-error").hidden = false;
+  $("renderer-error").textContent = message + " Use 2D view to continue.";
+  $("renderer-state").textContent = "3D unavailable";
+}
+function setView(): void {
+  $("board-stage").classList.toggle("mode-3d", view3d);
+  $("captured-window").classList.toggle("mode-3d", view3d && !!originalBoard);
+  $("toggle-view").textContent = view3d ? "2D view" : "True 3D view";
+  originalBoard?.setActive(view3d);
+  $("renderer-state").textContent = view3d
+    ? originalBoard
+      ? "Staunton Rosewood & Ash · original 3D set"
+      : "3D loading or unavailable"
+    : "Original 2D piece artwork";
+  render();
+}
+function capturedPieces(ply = game.history().length): CapturedPiece[] {
+  return game
+    .history({ verbose: true })
+    .slice(0, ply)
+    .filter((m) => m.captured)
+    .map((m) => ({ type: m.captured!, color: m.color === "w" ? "b" : "w" }));
+}
 let selected: Square | null = null,
   flipped = false,
   thinking = false,
@@ -98,18 +104,27 @@ function positionText(): string {
 }
 
 function render(): void {
+  const display =
+    reviewPly === null
+      ? game
+      : new Chess(
+          reviewPly === 0
+            ? (game.history({ verbose: true })[0]?.before ?? game.fen())
+            : game.history({ verbose: true })[reviewPly - 1].after,
+        );
   const files = flipped ? "hgfedcba" : "abcdefgh";
   const ranks = flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
-  const legal = selected
-    ? game.moves({ square: selected, verbose: true }).map((m) => m.to)
-    : [];
+  const legal =
+    reviewPly === null && selected
+      ? game.moves({ square: selected, verbose: true }).map((m) => m.to)
+      : [];
   const history = game.history({ verbose: true }),
     last = history.at(-1);
   board.replaceChildren();
   for (const rank of ranks)
     for (const file of files) {
       const square = `${file}${rank}` as Square,
-        piece = game.get(square),
+        piece = display.get(square),
         button = document.createElement("button");
       button.className = `square ${(file.charCodeAt(0) - 97 + rank) % 2 ? "light" : "dark"}`;
       button.dataset.square = square;
@@ -170,16 +185,19 @@ function render(): void {
     : game.isGameOver()
       ? "Game complete"
       : "Original Chessmaster engine";
-  $("move-count").textContent = `Move ${Math.floor(history.length / 2) + 1}`;
+  $("move-count").textContent = `Move ${game.moveNumber()}`;
   const list = $("moves");
   list.replaceChildren();
-  for (let i = 0; i < history.length; i += 2) {
+  const rows = new Map<number, { w?: string; b?: string }>();
+  for (const move of history) {
+    const number = new Chess(move.before).moveNumber();
+    const row = rows.get(number) ?? {};
+    row[move.color] = move.san;
+    rows.set(number, row);
+  }
+  for (const [number, moves] of rows) {
     const row = document.createElement("li");
-    for (const text of [
-      `${i / 2 + 1}.`,
-      history[i].san,
-      history[i + 1]?.san ?? "—",
-    ]) {
+    for (const text of [`${number}.`, moves.w ?? "…", moves.b ?? "—"]) {
       const span = document.createElement("span");
       span.textContent = text;
       row.append(span);
@@ -188,10 +206,49 @@ function render(): void {
   }
   $("empty-moves").hidden = history.length > 0;
   list.scrollTop = list.scrollHeight;
+  const pieces = [
+    ...board.querySelectorAll<HTMLButtonElement>("[data-square]"),
+  ].flatMap((button) => {
+    const piece = display.get(button.dataset.square as Square);
+    return piece
+      ? [
+          {
+            square: button.dataset.square!,
+            type: piece.type,
+            color: piece.color,
+          },
+        ]
+      : [];
+  });
+  const captured = capturedPieces(reviewPly ?? history.length);
+  $("captured").replaceChildren(
+    ...captured.map((piece) => {
+      const img = document.createElement("img");
+      img.src = `/assets/${piece.color}${piece.type}.png`;
+      img.alt = `${piece.color === "w" ? "White" : "Black"} ${pieceNames[piece.type as PieceSymbol]}`;
+      return img;
+    }),
+  );
+  $("empty-captured").hidden = captured.length > 0;
+  $("history-position").textContent =
+    reviewPly === null ? "Live" : `${reviewPly}/${history.length}`;
+  for (const id of ["history-first", "history-previous"])
+    $<HTMLButtonElement>(id).disabled = (reviewPly ?? history.length) === 0;
+  for (const id of ["history-last", "history-next"])
+    $<HTMLButtonElement>(id).disabled = reviewPly === null;
+  $("board-stage").classList.toggle("reviewing", reviewPly !== null);
+  originalBoard?.update(pieces, flipped, captured);
+  updateClocks();
 }
 
 async function choose(square: Square): Promise<void> {
-  if (!ready || thinking || game.isGameOver() || game.turn() !== human())
+  if (
+    reviewPly !== null ||
+    !ready ||
+    thinking ||
+    game.isGameOver() ||
+    game.turn() !== human()
+  )
     return;
   const piece = game.get(square);
   if (selected) {
@@ -203,6 +260,7 @@ async function choose(square: Square): Promise<void> {
       if (candidates.some((m) => m.promotion)) promotion = await promote();
       const from = selected;
       selected = null;
+      updateClocks();
       const move = game.move({ from, to: square, promotion });
       command("force\n" + move.from + move.to + (move.promotion ?? ""));
       if (!game.isGameOver()) {
@@ -248,6 +306,9 @@ function watchReply(): void {
 
 async function startGame(fen?: string): Promise<void> {
   const current = ++generation;
+  reviewPly = null;
+  elapsed = { w: 0, b: 0 };
+  clockTick = performance.now();
   worker?.terminate();
   clearTimeout(deadline);
   if (fen) game.load(fen);
@@ -327,6 +388,7 @@ async function startGame(fen?: string): Promise<void> {
                 return;
               }
               try {
+                updateClocks();
                 game.move({
                   from: move.slice(0, 2),
                   to: move.slice(2, 4),
@@ -336,6 +398,7 @@ async function startGame(fen?: string): Promise<void> {
                 fail(`The engine returned an illegal move: ${move}.`);
                 return;
               }
+              reviewPly = null;
               clearTimeout(deadline);
               thinking = false;
               status(positionText());
@@ -356,6 +419,66 @@ async function startGame(fen?: string): Promise<void> {
   );
 }
 
+function updateClocks(): void {
+  const now = performance.now(),
+    delta = now - clockTick;
+  clockTick = now;
+  if (ready && !game.isGameOver()) elapsed[game.turn()] += delta;
+  const topColor = flipped ? "w" : "b";
+  for (const [id, color] of [
+    ["top-clock", topColor],
+    ["bottom-clock", topColor === "w" ? "b" : "w"],
+  ] as const) {
+    const seconds = Math.floor(elapsed[color] / 1000);
+    $(id).textContent =
+      `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+}
+setInterval(updateClocks, 250);
+$("settings").onclick = () =>
+  $<HTMLDialogElement>("settings-dialog").showModal();
+$("close-settings").onclick = () =>
+  $<HTMLDialogElement>("settings-dialog").close();
+$("toggle-view").onclick = () => {
+  view3d = !view3d;
+  setView();
+};
+$("board-material").onchange = () =>
+  originalBoard?.setMaterial($<HTMLSelectElement>("board-material").value);
+for (const [id, step] of [
+  ["history-first", -Infinity],
+  ["history-previous", -1],
+  ["history-next", 1],
+  ["history-last", Infinity],
+] as const)
+  $(id).onclick = () => {
+    const next = Math.max(
+      0,
+      Math.min(
+        game.history().length,
+        (reviewPly ?? game.history().length) + step,
+      ),
+    );
+    reviewPly = next === game.history().length ? null : next;
+    selected = null;
+    render();
+  };
+wireRoomControls();
+OriginalBoard.create(
+  $("board-stage"),
+  board,
+  $("captured-stage"),
+  rendererError,
+)
+  .then((view) => {
+    originalBoard = view;
+    view.setMaterial($<HTMLSelectElement>("board-material").value);
+    setView();
+  })
+  .catch((error) =>
+    rendererError(`Recovered 3D set could not load: ${String(error)}`),
+  );
+setView();
 $("new-game").onclick = () => void startGame();
 $("load-position").onclick = () => {
   $<HTMLTextAreaElement>("fen").value = game.fen();
@@ -394,7 +517,10 @@ $("export").onclick = () => {
 $("about").onclick = () => $<HTMLDialogElement>("about-dialog").showModal();
 $("close-about").onclick = () => $<HTMLDialogElement>("about-dialog").close();
 for (const id of ["side", "depth", "personality"])
-  $(id).addEventListener("change", () => void startGame());
+  $(id).addEventListener("change", () => {
+    $<HTMLDialogElement>("settings-dialog").close();
+    void startGame();
+  });
 render();
 const PersonalitySchema = Schema.Struct({
   id: Schema.String,
