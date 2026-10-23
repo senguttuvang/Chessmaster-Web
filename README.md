@@ -1,5 +1,7 @@
 # Chessmaster-Web
 
+**[Play in your browser](https://chessmaster9000.com/)**
+
 An unofficial, source-only reconstruction of Chessmaster 9000 for modern browsers.
 **Bring your own game media.** This repository contains new browser/host code,
 licensed porting tools and recovery procedures. It contains no game executable,
