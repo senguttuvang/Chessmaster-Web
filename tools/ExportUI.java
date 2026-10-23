@@ -11,7 +11,7 @@ public class ExportUI extends GhidraScript {
     public void run() throws Exception {
         Set<Function> selected = new LinkedHashSet<>();
         String pattern = "(?i)(PTR_)?(cmLoadMenu|cmSetMenu|cmTrackPopupMenu|cguiFindFont|cguiFontInit|cguiRegisterFont|LoadMenuA" +
-            (getScriptArgs().length > 1 && getScriptArgs()[1].equals("menu") ? "" : "|DialogBoxParam|CreateDialogParam") + ")(_[0-9a-f]+)?";
+            (getScriptArgs().length > 1 && getScriptArgs()[1].equals("menu") ? "" : "|DialogBoxParamA|CreateDialogParamA") + ")(_[0-9a-f]+)?";
         try (PrintWriter out = new PrintWriter(new FileWriter(getScriptArgs()[0]))) {
             out.println("/* Inferred Ghidra pseudocode; not original source. Static selection by menu/dialog/font symbols. */");
             for (Symbol symbol : currentProgram.getSymbolTable().getAllSymbols(true)) {
@@ -39,7 +39,7 @@ public class ExportUI extends GhidraScript {
                     if (++count > 40) { out.println("/* Selection bounded to first 40 functions. */"); break; }
                     out.println("\n/* " + f.getName() + " at " + f.getEntryPoint() + " */");
                     DecompileResults result=dc.decompileFunction(f,20,monitor);
-                    if (result.decompileCompleted()) out.println(result.getDecompiledFunction().getC());
+                    if (result.decompileCompleted()) out.println(result.getDecompiledFunction().getC().replaceAll("(?m)[ \\t]+$", ""));
                     else out.println("/* Incomplete: " + result.getErrorMessage().replace("*/", "") + " */");
                 }
             } finally { dc.dispose(); }

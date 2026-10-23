@@ -76,7 +76,7 @@ def recover(game):
                     elif kind.id in [4,5,9]:
                         # Preserve exact resource templates and readable UTF-16 spans for audit.
                         target=source/f'{dll}-{kind.id}-{name.name or name.id}-{lang.id}.bin'
-                        target.write_bytes(raw); record(f'{dll}:RT_{kind.id}/{name.id}/{lang.id}',raw,target)
+                        target.write_bytes(raw); record(f'{dll}:RT_{kind.id}/{name.name or name.id}/{lang.id}',raw,target)
                         import re
                         item['text']=[s.decode('utf-16le') for s in re.findall(rb'(?:[\x20-\x7e]\x00){2,}',raw)]
                         if kind.id == 4: item['menu']=menu(raw)
@@ -91,7 +91,7 @@ def recover(game):
                             image=im.convert('RGBA')
                             image.putdata([(r,g,b,0 if r>240 and b>240 and g<20 else 255) for r,g,b,_ in image.get_flattened_data()])
                             png(f'{dll}:RT_BITMAP/{name.name or name.id}/{lang.id}',raw,image,out/f'{alias}.png')
-                        previews.append((f'{dll[:3]}-{name.id} {im.width}x{im.height}',im.copy()))
+                        previews.append((f'{dll[:3]}-{name.name or name.id} {im.width}x{im.height}',im.copy()))
                     entries.append(item)
         resources[dll] = dict(resources=entries, imports={d.dll.decode():[i.name.decode() if i.name else f'#{i.ordinal}' for i in d.imports] for d in getattr(pe,'DIRECTORY_ENTRY_IMPORT',[])}, exports=[dict(name=e.name.decode() if e.name else None, rva=e.address) for e in getattr(getattr(pe,'DIRECTORY_ENTRY_EXPORT',None),'symbols',[])])
     (source/'pe-resources.json').write_text(json.dumps(resources,indent=2)+'\n')
@@ -114,7 +114,6 @@ def recover(game):
     for name in ['StauntonWoodW.dds','StauntonWoodB.dds','StauntonWood01W.dds','StauntonWood01B.dds','StauntonWood02W.dds','StauntonWood02B.dds','BoardWoodDark512.dds','BoardWoodBurl512.dds','BoardWoodMahogany512.dds','Decals_Brown.dds']:
         if name.lower() not in sets.index: continue
         raw=sets.read(name); png(f'CMSETS.DAT:{name}',raw,Image.open(io.BytesIO(raw)),out/(Path(name).stem+'.png'))
-    conversion=[]
     for name in names:
         original=source/'models'/name
         target=out/(Path(name).stem+'.gltf')
