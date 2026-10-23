@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "types": ["bun"]
   },
-  "include": ["web/src", "tests/*.ts", "vite.config.ts", "playwright.config.ts"]
+  "include": ["web/src", "tools/analytics", "tests/*.ts", "vite.config.ts", "playwright.config.ts"]
 }

@@ -73,6 +73,7 @@ export class ContentRoom {
     private changed: () => void,
     private play: (fen: string) => void,
     private audio: BrowserAudio,
+    private lessonOpened: () => void = () => {},
   ) {
     $("replay-narration").hidden = true;
     $("stop-narration").hidden = true;
@@ -274,6 +275,7 @@ export class ContentRoom {
     step.hidden = this.mode !== "classroom";
     if (this.mode === "classroom") {
       const lesson = this.lessons.find((l) => l.id === id)!;
+      this.lessonOpened();
       this.replay = new ReplayController(lessonFrames(lesson));
       this.beginStep(0);
       lesson.steps.forEach((s, i) => {

@@ -56,14 +56,16 @@ class ElementOutput implements ClipOutput {
   readonly element = document.createElement("audio");
   private finish: (() => void) | undefined;
   private version = 0;
+  private reportedPlayback = false;
   get volume() { return this.element.volume; }
   set volume(value: number) { this.element.volume = value; }
-  constructor(channel: string, private report: (message: string) => void) {
+  constructor(channel: "effect" | "narration", private report: (message: string) => void, played: (channel: "effect" | "narration") => void) {
     this.element.hidden = true;
     this.element.preload = "none";
     this.element.dataset.audioChannel = channel;
     document.body.append(this.element);
     this.element.addEventListener("playing", () => {
+      if (!this.reportedPlayback) { this.reportedPlayback = true; played(channel); }
       this.element.dataset.lastPlayed = this.element.dataset.clip;
       this.element.dataset.playCount = String(Number(this.element.dataset.playCount ?? 0) + 1);
       this.report("Playing original " + channel + ": " + this.element.dataset.clip);
@@ -71,6 +73,7 @@ class ElementOutput implements ClipOutput {
   }
   play(url: string, id: string, duration: number): Promise<void> {
     this.stop();
+    this.reportedPlayback = false;
     const version = this.version;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => fail("Playback timed out for " + id), Math.max(15000, duration * 1000 + 15000));
@@ -106,9 +109,9 @@ export class BrowserAudio {
   private voiceOutput: ElementOutput;
   private effects: ClipQueue;
   private voices: ClipQueue;
-  constructor(private report: (message: string) => void) {
-    this.effectOutput = new ElementOutput("effect", report);
-    this.voiceOutput = new ElementOutput("narration", report);
+  constructor(private report: (message: string) => void, played: (channel: "effect" | "narration") => void = () => {}) {
+    this.effectOutput = new ElementOutput("effect", report, played);
+    this.voiceOutput = new ElementOutput("narration", report, played);
     this.effects = new ClipQueue(this.effectOutput, report);
     this.voices = new ClipQueue(this.voiceOutput, report);
     try {

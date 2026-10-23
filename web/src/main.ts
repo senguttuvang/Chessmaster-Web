@@ -11,6 +11,15 @@ import { room, wireRoomControls } from "./room";
 import { OriginalBoard, type CapturedPiece } from "./board3d";
 import { BrowserAudio, moveSoundEvents } from "./audio";
 import "./audio.css";
+import { GameplayAnalytics, boundedDuration } from "./analytics";
+import { analyticsConfig } from "./analytics-config";
+
+const analytics = new GameplayAnalytics(analyticsConfig);
+analytics.start();
+let engineLoadStarted = performance.now();
+let gameStarted = performance.now();
+let gameCompletionTracked = false;
+let engineFailureTracked = false;
 
 type Personality = {
   id: string;
@@ -29,7 +38,7 @@ const audio = new BrowserAudio(message => {
   $("audio-status").textContent = message;
   if (/unavailable|missing|blocked|defect|could not/i.test(message))
     $("audio-error").textContent = message;
-});
+}, channel => analytics.event("audio_playback", { audio_channel: channel }));
 $<HTMLInputElement>("sound-enabled").checked = audio.enabled;
 $<HTMLInputElement>("narration-enabled").checked = audio.narrationEnabled;
 $<HTMLInputElement>("sound-volume").value = String(audio.volume);
@@ -114,6 +123,13 @@ const command = (text: string) => {
 };
 
 function fail(message: string): void {
+  if (!engineFailureTracked) {
+    engineFailureTracked = true;
+    analytics.event("engine_load_failed", {
+      engine_phase: ready ? "runtime" : "load",
+      load_ms: boundedDuration(performance.now() - engineLoadStarted),
+    });
+  }
   ready = false;
   thinking = false;
   clearTimeout(deadline);
@@ -292,6 +308,15 @@ function render(): void {
       `${$("content-title").textContent} replay. Use the replay controls or answer the original exercise.`;
     $("move-count").textContent = "Replay";
   }
+  if (ready && game.isGameOver() && !gameCompletionTracked) {
+    gameCompletionTracked = true;
+    analytics.event("game_completed", {
+      game_result: game.isCheckmate() ? (game.turn() === "w" ? "black_win" : "white_win") : "draw",
+      finish_reason: game.isCheckmate() ? "checkmate" : game.isStalemate() ? "stalemate"
+        : game.isThreefoldRepetition() ? "repetition" : game.isInsufficientMaterial() ? "insufficient_material" : "draw",
+      duration_ms: boundedDuration(performance.now() - gameStarted),
+    });
+  }
   tournamentRoom?.observe(game, generation);
   updateClocks();
 }
@@ -365,7 +390,11 @@ function watchReply(): void {
   );
 }
 
-async function startGame(fen?: string): Promise<void> {
+async function startGame(fen?: string, source: "initial" | "new_game" | "settings" | "position" | "lesson" | "tournament" = "new_game"): Promise<void> {
+  engineLoadStarted = performance.now();
+  gameStarted = engineLoadStarted;
+  gameCompletionTracked = false;
+  engineFailureTracked = false;
   audio.stop();
   const current = ++generation;
   reviewPly = null;
@@ -416,6 +445,7 @@ async function startGame(fen?: string): Promise<void> {
             return;
           }
           if (type === "ready") {
+            if (ready) return;
             command(
               "xboard\nnew\nforce\ncm_parm default\ncm_parm tts=16777216",
             );
@@ -425,6 +455,8 @@ async function startGame(fen?: string): Promise<void> {
             command(`sd ${$<HTMLSelectElement>("depth").value}\nst 2`);
             if (fen) command(`setboard ${fen}`);
             ready = true;
+            analytics.event("engine_ready", { load_ms: boundedDuration(performance.now() - engineLoadStarted) });
+            analytics.event("game_started", { game_source: source, human_side: human() });
             $("connection").textContent = "The King · Ready";
             $("engine-state").textContent = "The King 3.23 · WebAssembly";
             if (game.turn() !== human() && !game.isGameOver()) {
@@ -538,8 +570,8 @@ function contentPiece(square: string) {
 wireRoomControls();
 contentRoom = new ContentRoom(render, (fen) => {
   navigation?.show("game");
-  void startGame(fen);
-}, audio);
+  void startGame(fen, "lesson");
+}, audio, () => analytics.event("lesson_opened", {}));
 const databaseRoom = new DatabaseRoom(contentRoom, () => game.pgn());
 tournamentRoom = new TournamentRoom(
   contentRoom,
@@ -551,7 +583,7 @@ tournamentRoom = new TournamentRoom(
     $<HTMLSelectElement>("side").value = color;
     navigation?.show("game");
     const expected = generation + 1;
-    void startGame();
+    void startGame(undefined, "tournament");
     return expected;
   },
   () => game.pgn(),
@@ -586,6 +618,7 @@ navigation = new RoomNavigation(
   () => databaseRoom.open(),
   () => void tournamentRoom!.open(),
   () => void liveRoom.open(),
+  room => analytics.page(room),
 );
 OriginalBoard.create(
   $("board-stage"),
@@ -594,6 +627,7 @@ OriginalBoard.create(
   rendererError,
 )
   .then((view) => {
+    analytics.event("renderer_ready", { load_ms: boundedDuration(performance.now()) });
     originalBoard = view;
     view.setMaterial($<HTMLSelectElement>("board-material").value);
     setView();
@@ -625,7 +659,7 @@ $("position-form").onsubmit = (event) => {
   }
   $<HTMLDialogElement>("position-dialog").close();
   navigation?.show("game");
-  void startGame(fen);
+  void startGame(fen, "position");
 };
 $("flip").onclick = () => {
   flipped = !flipped;
@@ -646,7 +680,7 @@ $("close-about").onclick = () => $<HTMLDialogElement>("about-dialog").close();
 for (const id of ["side", "depth", "personality"])
   $(id).addEventListener("change", () => {
     $<HTMLDialogElement>("settings-dialog").close();
-    void startGame();
+    void startGame(undefined, "settings");
   });
 render();
 const PersonalitySchema = Schema.Struct({
@@ -678,4 +712,4 @@ fetch("/assets/personalities.json")
     $("profile-note").textContent =
       `Personality data unavailable: ${String(error)}. The default engine is still available.`;
   });
-void startGame();
+void startGame(undefined, "initial");
