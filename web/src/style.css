@@ -978,8 +978,128 @@ textarea {
     min-width: 100px;
   }
 }
-#database-controls { display: none; }
-.workspace[data-room=database] #database-controls { display: block; padding-bottom: 14px; border-bottom: 1px solid #a58c55; }
-#database-controls textarea { width:100%;resize:vertical;font:inherit; }
-#database-controls button { margin: 5px 4px 5px 0; }
-#database-message { line-height: 1.5; overflow-wrap: anywhere; }
+#database-controls {
+  display: none;
+}
+.workspace[data-room="database"] #database-controls {
+  display: block;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #a58c55;
+}
+#database-controls textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+}
+#database-controls button {
+  margin: 5px 4px 5px 0;
+}
+#database-message {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.tournament-mode .board-area,
+.tournament-mode #shortcuts,
+.tournament-mode #game-status,
+.tournament-mode #captured-window,
+.live-mode .board-area,
+.live-mode #shortcuts,
+.live-mode #game-status,
+.live-mode #captured-window {
+  display: none;
+}
+.event-panel {
+  width: min(1050px, calc(100% - 30px));
+  margin: 15px auto;
+  border: 4px ridge #b79b52;
+  background: #ddd2b7 var(--wood);
+}
+.event-body {
+  padding: 20px;
+  line-height: 1.6;
+}
+.event-body label {
+  display: block;
+  margin-top: 12px;
+}
+.event-body select,
+.event-body input {
+  font: inherit;
+  max-width: 100%;
+  padding: 6px;
+  background: #fff8e4;
+  border: 1px solid #88713f;
+}
+#tournament-players {
+  width: min(500px, 100%);
+}
+.event-body button {
+  margin: 10px 8px 6px 0;
+}
+.event-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-variant-numeric: tabular-nums;
+}
+.event-body caption {
+  text-align: left;
+  font-weight: bold;
+}
+.event-body td,
+.event-body th {
+  border: 1px solid #a08c59;
+  text-align: left;
+  padding: 6px;
+}
+.event-body pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow: auto;
+}
+#tournament-banner {
+  background: var(--wood);
+  padding: 10px;
+  color: #30250f;
+}
+.live-art {
+  float: right;
+  width: 160px;
+  height: 168px;
+  object-fit: contain;
+  margin: 0 0 15px 20px;
+}
+#live-evidence {
+  clear: both;
+  max-height: 480px;
+  overflow: auto;
+  padding-left: 24px;
+}
+#live-evidence li {
+  padding: 10px 0;
+  border-bottom: 1px solid #ad9861;
+  overflow-wrap: anywhere;
+}
+#live-evidence p {
+  margin: 4px 0;
+}
+@media (max-width: 700px) {
+  .event-body {
+    padding: 10px;
+  }
+  .event-body table {
+    font-size: 11px;
+  }
+  .event-body td,
+  .event-body th {
+    padding: 3px;
+  }
+  .event-body button {
+    padding: 5px;
+  }
+  .live-art {
+    width: 100px;
+    height: 105px;
+  }
+}

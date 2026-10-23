@@ -32,16 +32,27 @@ export type Game = Schema.Schema.Type<typeof GameSchema>;
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 export class ContentRoom {
-  mode: "game" | "classroom" | "library" | "database" = "game";
+  mode: "game" | "classroom" | "library" | "database" | "collection" = "game";
   replay: ReplayController | undefined;
   private lessons: readonly Lesson[] = [];
   private games: readonly Game[] = [];
   private databaseGames: readonly Game[] = [];
+  private collectionGames: readonly Game[] = [];
+  private collectionTitle = "Replay";
+  async openCollection(games: readonly Game[], title: string): Promise<void> {
+    this.collectionGames = games;
+    this.collectionTitle = title;
+    await this.open("collection");
+  }
   get selectedId() {
     return this.selected;
   }
   private get activeGames() {
-    return this.mode === "database" ? this.databaseGames : this.games;
+    return this.mode === "database"
+      ? this.databaseGames
+      : this.mode === "collection"
+        ? this.collectionGames
+        : this.games;
   }
   async openDatabase(games: readonly Game[]): Promise<void> {
     this.databaseGames = games;
@@ -140,7 +151,7 @@ export class ContentRoom {
     return this.override ?? this.current?.board;
   }
   async open(
-    mode: "game" | "classroom" | "library" | "database",
+    mode: "game" | "classroom" | "library" | "database" | "collection",
   ): Promise<void> {
     this.stop();
     this.mode = mode;
@@ -154,7 +165,7 @@ export class ContentRoom {
       .querySelector(".workspace")!
       .classList.toggle(
         "library-mode",
-        mode === "library" || mode === "database",
+        mode === "library" || mode === "database" || mode === "collection",
       );
     $("content-panel").hidden = !this.active;
     for (const [id, name] of [
@@ -168,7 +179,9 @@ export class ContentRoom {
         ? "Classroom"
         : mode === "database"
           ? "Database"
-          : "Library";
+          : mode === "collection"
+            ? this.collectionTitle
+            : "Library";
     $("content-feedback").textContent = "";
     $("content-text").textContent = "";
     if (!this.active) {
@@ -282,7 +295,7 @@ export class ContentRoom {
         })),
       );
       $("content-source").textContent =
-        `${this.mode === "database" ? "Local PGN" : "CLASSICG.PGN"} · ${game.headers.Site ?? ""} · ${game.headers.Event ?? ""} · Original game and comments`;
+        `${this.mode === "database" ? "Local PGN" : this.mode === "collection" ? this.collectionTitle + " PGN" : "CLASSICG.PGN"} · ${game.headers.Site ?? ""} · ${game.headers.Event ?? ""} · PGN mainline and comments`;
     }
     this.update();
   }

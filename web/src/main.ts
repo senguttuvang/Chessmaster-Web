@@ -2,6 +2,8 @@ import { Chess, type Square, type PieceSymbol, type Color } from "chess.js";
 import { Effect, Schema } from "effect";
 import { engineMove, RING_SIZE, sendCommand } from "./protocol";
 import "./style.css";
+import { TournamentRoom } from "./tournament-room";
+import { LiveRoom } from "./live-room";
 import { DatabaseRoom } from "./database-room";
 import { RoomNavigation } from "./navigation";
 import { ContentRoom } from "./content-room";
@@ -26,6 +28,7 @@ const game = new Chess();
 let originalBoard: OriginalBoard | undefined;
 let contentRoom: ContentRoom | undefined;
 let navigation: RoomNavigation | undefined;
+let tournamentRoom: TournamentRoom | undefined;
 let view3d = true;
 let reviewPly: number | null = null;
 let elapsed = { w: 0, b: 0 };
@@ -259,9 +262,10 @@ function render(): void {
   originalBoard?.update(pieces, displayFlipped, captured);
   if (contentRoom?.active) {
     $("status").textContent =
-      `${contentRoom.mode === "classroom" ? "Classroom" : contentRoom.mode === "database" ? "Database" : "Library"} replay. Use the replay controls or answer the original exercise.`;
+      `${$("content-title").textContent} replay. Use the replay controls or answer the original exercise.`;
     $("move-count").textContent = "Replay";
   }
+  tournamentRoom?.observe(game, generation);
   updateClocks();
 }
 
@@ -506,6 +510,35 @@ contentRoom = new ContentRoom(render, (fen) => {
   void startGame(fen);
 });
 const databaseRoom = new DatabaseRoom(contentRoom, () => game.pgn());
+tournamentRoom = new TournamentRoom(
+  contentRoom,
+  (id, color) => {
+    const select = $<HTMLSelectElement>("personality");
+    if (![...select.options].some((o) => o.value === id))
+      throw new Error("Original personality data is not ready");
+    select.value = id;
+    $<HTMLSelectElement>("side").value = color;
+    navigation?.show("game");
+    const expected = generation + 1;
+    void startGame();
+    return expected;
+  },
+  () => game.pgn(),
+  () => {
+    ++generation;
+    worker?.terminate();
+    worker = null;
+    ring = null;
+    ready = false;
+    thinking = false;
+    clearTimeout(deadline);
+    $("connection").textContent = "Tournament game finished";
+    $("engine-state").textContent = "Engine stopped after tournament result";
+    status("Tournament result recorded. Use New game to play again.");
+    render();
+  },
+);
+const liveRoom = new LiveRoom();
 navigation = new RoomNavigation(
   contentRoom,
   (id) => {
@@ -520,6 +553,8 @@ navigation = new RoomNavigation(
     select.dispatchEvent(new Event("change"));
   },
   () => databaseRoom.open(),
+  () => void tournamentRoom!.open(),
+  () => void liveRoom.open(),
 );
 OriginalBoard.create(
   $("board-stage"),

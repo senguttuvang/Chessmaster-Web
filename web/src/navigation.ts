@@ -1,6 +1,13 @@
 import type { ContentRoom } from "./content-room";
 export type RoomName =
-  "home" | "game" | "classroom" | "library" | "kids" | "database";
+  | "home"
+  | "game"
+  | "classroom"
+  | "library"
+  | "kids"
+  | "database"
+  | "tournament"
+  | "live";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 export class RoomNavigation {
@@ -9,6 +16,8 @@ export class RoomNavigation {
     private content: ContentRoom,
     private profile: (id: string) => void,
     private database: () => void,
+    private tournament: () => void,
+    private live: () => void,
   ) {
     for (const room of [
       "home",
@@ -17,6 +26,8 @@ export class RoomNavigation {
       "library",
       "kids",
       "database",
+      "tournament",
+      "live",
     ] as const)
       $(`room-${room}`).onclick = () => this.show(room);
     for (const b of document.querySelectorAll<HTMLButtonElement>(
@@ -46,12 +57,20 @@ export class RoomNavigation {
     const workspace = document.querySelector<HTMLElement>(".workspace")!;
     workspace.dataset.room = room;
     workspace.classList.toggle("landing-mode", landing);
+    workspace.classList.toggle("tournament-mode", room === "tournament");
+    workspace.classList.toggle("live-mode", room === "live");
+    $("tournament-panel").hidden = room !== "tournament";
+    $("live-panel").hidden = room !== "live";
     $("landing-panel").hidden = !landing;
     $("home-content").hidden = room !== "home";
     $("kids-content").hidden = room !== "kids";
     $("landing-title").textContent = room === "kids" ? "Kids Room" : "Home";
     $("landing-message").textContent = "";
-    if (room === "database") this.database();
+    if (room === "tournament" || room === "live") {
+      void this.content.open("game");
+      if (room === "tournament") this.tournament();
+      else this.live();
+    } else if (room === "database") this.database();
     else if (lessonId) void this.content.openLesson(lessonId);
     else
       void this.content.open(
@@ -64,6 +83,8 @@ export class RoomNavigation {
       "library",
       "kids",
       "database",
+      "tournament",
+      "live",
     ])
       $(`room-${id}`).setAttribute(
         "aria-current",

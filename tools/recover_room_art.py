@@ -10,7 +10,7 @@ from recover_ui import dib_image
 
 def recover(game):
  out=ROOT/'web/public/assets/rooms';out.mkdir(parents=True,exist_ok=True);evidence=ROOT/'recovery/rooms';evidence.mkdir(exist_ok=True)
- selected={'CM256.DLL':{'LOBBY_BACKGROUND_LARGE':'lobby-background'},'GUIRESOU.DLL':{21600:'learn-to-play',21610:'play-a-game',21605:'chess-sets'}};assets=[]
+ selected={'CM256.DLL':{'LOBBY_BACKGROUND_LARGE':'lobby-background','CMLIVE_BACKGROUND':'live-background'},'GUIRESOU.DLL':{21600:'learn-to-play',21610:'play-a-game',21605:'chess-sets'}};assets=[]
  for dll,names in selected.items():
   raw=(game/dll).read_bytes();pe=pefile.PE(data=raw)
   for kind in pe.DIRECTORY_ENTRY_RESOURCE.entries:

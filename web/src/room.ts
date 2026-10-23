@@ -12,7 +12,7 @@ export const room = `
     <details><summary>Actions</summary><div class="menu-popup"><button data-action="flip">Rotate Board</button></div></details>
     <details><summary>Preferences</summary><div class="menu-popup"><button data-action="settings">Board and Game Settings…</button><button data-action="toggle-view">Switch 2D / True 3D</button></div></details>
     <details><summary>Windows</summary><div class="menu-popup"><button data-show="shortcuts">Shortcuts</button><button data-show="game-status">Game Status</button><button data-show="captured-window">Captured Pieces</button><button id="restore-windows">Restore Window Layout</button></div></details>
-    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-home">Home</button><button data-action="room-kids">Kids Room</button><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button data-action="room-database">Database</button><button disabled>Other rooms · pending recovery</button></div></details>
+    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-home">Home</button><button data-action="room-kids">Kids Room</button><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button data-action="room-database">Database</button><button data-action="room-tournament">Tournament</button><button data-action="room-live">CM Live · offline</button></div></details>
     <details><summary>Help</summary><div class="menu-popup"><button data-action="about">About this Reconstruction…</button></div></details>
   </nav>
   <div class="room-body">
@@ -29,11 +29,21 @@ export const room = `
       ]
         .map(
           ([name, label]) =>
-            `<button ${["classroom", "library", "kids", "database"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
+            `<button ${["classroom", "library", "kids", "database", "tournament", "live"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
         )
         .join("")}
     </nav>
     <div class="workspace" data-room="game">
+      <section id="tournament-panel" class="event-panel" hidden><header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2>Local Tournament</h2></header><div class="event-body">
+      <p>Single round robin with original The King personalities. Each pair plays once; wins score 1, draws ½, losses 0. Swiss, historical ratings and original time controls are not restored.</p>
+      <label for="tournament-players">Select computer participants (2–5 total with you)</label><select id="tournament-players" multiple size="6"></select><label><input id="tournament-human" type="checkbox" checked> Include you as a human participant</label>
+      <div class="event-settings"><label for="tournament-depth">Computer search depth</label><select id="tournament-depth"><option value="2">2 plies</option><option value="4">4 plies</option></select><label for="tournament-limit">Computer-game ply limit (browser draw adjudication)</label><input id="tournament-limit" type="number" min="2" max="200" value="120"></div>
+      <button id="tournament-create">Create local event</button><button id="tournament-cancel" disabled>Cancel active fixture</button><button id="tournament-resign" disabled>Resign human game</button><button id="tournament-draw" disabled>Adjudicate human draw</button><button id="tournament-export">Export completed PGNs</button>
+      <p id="tournament-message" role="status"></p><table><caption>Fixtures</caption><thead><tr><th>White</th><th>Black</th><th>Result</th><th>Play / replay</th></tr></thead><tbody id="tournament-fixtures"></tbody></table>
+      <table><caption>Local standings · points and wins</caption><thead><tr><th>Player</th><th>Played</th><th>Wins</th><th>Draws</th><th>Losses</th><th>Points</th></tr></thead><tbody id="tournament-standings"></tbody></table><pre id="tournament-live"></pre>
+      <details><summary>Storage recovery</summary><button id="tournament-raw">Export raw event data</button><button id="tournament-reset">Reset local event</button></details>
+      <p>Completed results persist in this browser origin. Interrupted fixtures remain unplayed. Source rules: TUTORIAL/TOURNAME.TUT; local scheduling, limits and persistence are browser implementations.</p></div></section>
+      <section id="live-panel" class="event-panel live-panel" hidden><header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2>CM Live · Offline Evidence</h2></header><div class="event-body"><img class="live-art" src="/assets/rooms/live-background.png" alt="Original CM Live artwork"><p id="live-status" role="status">Offline evidence only. The original online service is not restored.</p><p>Original login/settings labels, module imports and protocol strings are preserved below. There is no credential form or connection button. Original servers, accounts, lobby/matchmaking and online play are unavailable. A new multiplayer backend is a separate product decision.</p><label for="live-search">Search recovered screens/settings/protocol evidence</label><input id="live-search" type="search"><p id="live-count"></p><ul id="live-evidence"></ul></div></section>
       <section id="landing-panel" class="landing-panel" hidden>
         <header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2 id="landing-title">Home</h2></header>
         <div id="home-content"><h2>Choose a room</h2><div class="room-choices">
@@ -43,6 +53,8 @@ export const room = `
             ["library", "Library"],
             ["kids", "Kids Room"],
             ["database", "Database"],
+            ["tournament", "Tournament"],
+            ["live", "CM Live · offline"],
           ]
             .map(
               ([id, label]) =>
@@ -65,6 +77,7 @@ export const room = `
         <p id="content-feedback" role="status"></p><button id="play-replay">Play this position against The King</button><p class="content-source" id="content-source"></p><details><summary>Original source text</summary><pre id="content-raw"></pre></details></div>
       </section>
       <section class="board-area" aria-label="Play chess">
+        <div id="tournament-banner" hidden><p id="tournament-banner-text"></p><button data-action="room-tournament">Return to Tournament</button></div>
         <div class="board-stage" id="board-stage"><div id="board" role="group" aria-label="Chessboard"></div></div>
         <div class="board-controls"><button id="toggle-view">2D view</button><button id="flip">Rotate board</button><span id="move-count">Move 1</span></div>
         <p id="renderer-state" role="status">Loading recovered 3D set…</p>
@@ -99,7 +112,7 @@ export const room = `
 <p>Opponent, side or depth changes start a new game.</p><div class="opponent-details"><img id="portrait" src="/assets/wk.png" alt="Opponent portrait"><strong id="opponent-name">The King</strong><p id="opponent-style">The original Chessmaster 9000 engine.</p></div><p id="profile-note">Original personality ratings are uncalibrated for this browser runtime.</p><button id="close-settings">Return to game</button></dialog>
 <dialog id="promotion"><h2>Promote your pawn</h2><p>Choose a piece to complete your move.</p><div class="promotion-options"></div></dialog>
 <dialog id="position-dialog"><h2>Load a chess position</h2><form id="position-form"><label for="fen">Position in FEN notation</label><textarea id="fen" rows="4" required spellcheck="false"></textarea><p id="position-error" role="alert"></p><button type="submit">Start from position</button><button id="cancel-position" type="button">Cancel</button></form></dialog>
-<dialog id="about-dialog"><h2>Chessmaster 9000, reconstructed</h2><p>The King 3.23's original x86 instructions are translated into C and compiled to WebAssembly. The engine runs locally in your browser.</p><p>Original Staunton meshes, wood textures, font, rail artwork and window bitmaps are recovered from the installation. The browser layout, lighting, controls and elapsed clocks are reimplemented. Exact screenshot materials, reflections and original runtime behavior remain unverified.</p><p>Classroom and Library use recovered original lesson text and classic games. Other rooms, opening books, tablebases, rated games and narration are not integrated. Playing strength is unverified. Use Game settings to choose among three recovered board textures.</p><button id="close-about">Return to game</button></dialog>`;
+<dialog id="about-dialog"><h2>Chessmaster 9000, reconstructed</h2><p>The King 3.23's original x86 instructions are translated into C and compiled to WebAssembly. The engine runs locally in your browser.</p><p>Original Staunton meshes, wood textures, font, rail artwork and window bitmaps are recovered from the installation. The browser layout, lighting, controls and elapsed clocks are reimplemented. Exact screenshot materials, reflections and original runtime behavior remain unverified.</p><p>Classroom and Library use recovered original lesson text and classic games. Home/Kids reuse recovered artwork and lessons; Database and Tournament provide browser-local PGN and round-robin flows. CM Live offers offline source evidence. Opening books, tablebases, historical ratings and narration are not integrated. Playing strength is unverified. Use Game settings to choose among three recovered board textures.</p><button id="close-about">Return to game</button></dialog>`;
 
 /** Reimplemented browser menu/window behavior, independent of game state. */
 export function wireRoomControls(): void {
