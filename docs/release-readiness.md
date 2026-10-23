@@ -1,7 +1,7 @@
 # Source-only release verification
 
 Prepared 23 October 2026. Functional code checkpoint:
-`579025ec` (use Git history for the full object ID).
+`579025e79fc60dd0a03b39d2c9abab2e2765d85d`.
 
 ## Contents and history
 
@@ -33,7 +33,7 @@ is not a substitute for review of source content or a legal opinion.
 - Guard regressions prove that prohibited paths and binary content disguised as
   source are rejected even after removal from the latest tree.
 - Redacted Gitleaks full-history scan of the code checkpoint reports no leaks.
-  The new history scan covers approximately539KB, rather than the private
+  The new history scan covers approximately 539 KB, rather than the private
   archive's original-content history. Re-run on the exact final release refs.
 
 Expected warnings: the media-free build cannot resolve original image/font URLs
