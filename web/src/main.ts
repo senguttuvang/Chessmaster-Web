@@ -2,6 +2,7 @@ import { Chess, type Square, type PieceSymbol, type Color } from "chess.js";
 import { Effect, Schema } from "effect";
 import { engineMove, RING_SIZE, sendCommand } from "./protocol";
 import "./style.css";
+import { ContentRoom } from "./content-room";
 import { room, wireRoomControls } from "./room";
 import { OriginalBoard, type CapturedPiece } from "./board3d";
 
@@ -21,6 +22,7 @@ const $ = <T extends HTMLElement>(id: string) =>
 const board = $("board");
 const game = new Chess();
 let originalBoard: OriginalBoard | undefined;
+let contentRoom: ContentRoom | undefined;
 let view3d = true;
 let reviewPly: number | null = null;
 let elapsed = { w: 0, b: 0 };
@@ -112,8 +114,11 @@ function render(): void {
             ? (game.history({ verbose: true })[0]?.before ?? game.fen())
             : game.history({ verbose: true })[reviewPly - 1].after,
         );
-  const files = flipped ? "hgfedcba" : "abcdefgh";
-  const ranks = flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
+  const displayFlipped = contentRoom?.current?.flipped ? !flipped : flipped;
+  const files = displayFlipped ? "hgfedcba" : "abcdefgh";
+  const ranks = displayFlipped
+    ? [1, 2, 3, 4, 5, 6, 7, 8]
+    : [8, 7, 6, 5, 4, 3, 2, 1];
   const legal =
     reviewPly === null && selected
       ? game.moves({ square: selected, verbose: true }).map((m) => m.to)
@@ -124,7 +129,9 @@ function render(): void {
   for (const rank of ranks)
     for (const file of files) {
       const square = `${file}${rank}` as Square,
-        piece = display.get(square),
+        piece =
+          contentPiece(square) ??
+          (contentRoom?.active ? undefined : display.get(square)),
         button = document.createElement("button");
       button.className = `square ${(file.charCodeAt(0) - 97 + rank) % 2 ? "light" : "dark"}`;
       button.dataset.square = square;
@@ -136,7 +143,10 @@ function render(): void {
       if (square === last?.from || square === last?.to)
         button.classList.add("last-move");
       if (square === selected) button.classList.add("selected");
-      if (legal.includes(square)) button.classList.add("legal");
+      if (contentRoom?.current?.highlights.includes(square))
+        button.classList.add("selected");
+      if (!contentRoom?.active && legal.includes(square))
+        button.classList.add("legal");
       if (piece) {
         const image = document.createElement("img");
         image.className = "piece";
@@ -209,7 +219,11 @@ function render(): void {
   const pieces = [
     ...board.querySelectorAll<HTMLButtonElement>("[data-square]"),
   ].flatMap((button) => {
-    const piece = display.get(button.dataset.square as Square);
+    const piece =
+      contentPiece(button.dataset.square!) ??
+      (contentRoom?.active
+        ? undefined
+        : display.get(button.dataset.square as Square));
     return piece
       ? [
           {
@@ -220,7 +234,9 @@ function render(): void {
         ]
       : [];
   });
-  const captured = capturedPieces(reviewPly ?? history.length);
+  const captured = contentRoom?.active
+    ? []
+    : capturedPieces(reviewPly ?? history.length);
   $("captured").replaceChildren(
     ...captured.map((piece) => {
       const img = document.createElement("img");
@@ -237,11 +253,20 @@ function render(): void {
   for (const id of ["history-last", "history-next"])
     $<HTMLButtonElement>(id).disabled = reviewPly === null;
   $("board-stage").classList.toggle("reviewing", reviewPly !== null);
-  originalBoard?.update(pieces, flipped, captured);
+  originalBoard?.update(pieces, displayFlipped, captured);
+  if (contentRoom?.active) {
+    $("status").textContent =
+      `${contentRoom.mode === "classroom" ? "Classroom" : "Library"} replay. Use the replay controls or answer the original exercise.`;
+    $("move-count").textContent = "Replay";
+  }
   updateClocks();
 }
 
 async function choose(square: Square): Promise<void> {
+  if (contentRoom?.active) {
+    contentRoom.choose(square);
+    return;
+  }
   if (
     reviewPly !== null ||
     !ready ||
@@ -463,7 +488,20 @@ for (const [id, step] of [
     selected = null;
     render();
   };
+function contentPiece(square: string) {
+  const char = contentRoom?.board?.[square];
+  return char
+    ? {
+        type: char.toLowerCase() as PieceSymbol,
+        color: (char === char.toUpperCase() ? "w" : "b") as Color,
+      }
+    : undefined;
+}
 wireRoomControls();
+contentRoom = new ContentRoom(render, (fen) => void startGame(fen));
+$("room-classroom").onclick = () => void contentRoom!.open("classroom");
+$("room-library").onclick = () => void contentRoom!.open("library");
+$("room-game").onclick = () => void contentRoom!.open("game");
 OriginalBoard.create(
   $("board-stage"),
   board,
@@ -479,7 +517,10 @@ OriginalBoard.create(
     rendererError(`Recovered 3D set could not load: ${String(error)}`),
   );
 setView();
-$("new-game").onclick = () => void startGame();
+$("new-game").onclick = () => {
+  void contentRoom?.open("game");
+  void startGame();
+};
 $("load-position").onclick = () => {
   $<HTMLTextAreaElement>("fen").value = game.fen();
   $("position-error").textContent = "";
@@ -498,6 +539,7 @@ $("position-form").onsubmit = (event) => {
     return;
   }
   $<HTMLDialogElement>("position-dialog").close();
+  void contentRoom?.open("game");
   void startGame(fen);
 };
 $("flip").onclick = () => {
