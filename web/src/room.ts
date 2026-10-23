@@ -12,13 +12,13 @@ export const room = `
     <details><summary>Actions</summary><div class="menu-popup"><button data-action="flip">Rotate Board</button></div></details>
     <details><summary>Preferences</summary><div class="menu-popup"><button data-action="settings">Board and Game Settings…</button><button data-action="toggle-view">Switch 2D / True 3D</button></div></details>
     <details><summary>Windows</summary><div class="menu-popup"><button data-show="shortcuts">Shortcuts</button><button data-show="game-status">Game Status</button><button data-show="captured-window">Captured Pieces</button><button id="restore-windows">Restore Window Layout</button></div></details>
-    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button disabled>Other rooms · pending recovery</button></div></details>
+    <details><summary>Rooms</summary><div class="menu-popup"><button data-action="room-home">Home</button><button data-action="room-kids">Kids Room</button><button data-action="room-game">Game Room</button><button data-action="room-classroom">Classroom</button><button data-action="room-library">Library</button><button disabled>Other rooms · pending recovery</button></div></details>
     <details><summary>Help</summary><div class="menu-popup"><button data-action="about">About this Reconstruction…</button></div></details>
   </nav>
   <div class="room-body">
     <nav class="icon-rail" aria-label="Rooms">
-      <button id="room-game" aria-label="Game Room" aria-current="page">${image("lobby")}</button>
-      <button data-action="settings" aria-label="Game Room settings">${image("game")}</button>
+      <button id="room-home" aria-label="Home">${image("lobby")}</button>
+      <button id="room-game" aria-label="Game Room" aria-current="page">${image("game")}</button>
       ${[
         ["classroom", "Classroom"],
         ["tournament", "Tournament"],
@@ -29,11 +29,29 @@ export const room = `
       ]
         .map(
           ([name, label]) =>
-            `<button ${["classroom", "library"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
+            `<button ${["classroom", "library", "kids"].includes(name) ? `id="room-${name}" aria-label="${label}"` : `disabled title="${label} is not implemented" aria-label="${label} · not implemented"`}>${image(name)}</button>`,
         )
         .join("")}
     </nav>
-    <div class="workspace">
+    <div class="workspace" data-room="game">
+      <section id="landing-panel" class="landing-panel" hidden>
+        <header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2 id="landing-title">Home</h2></header>
+        <div id="home-content"><h2>Choose a room</h2><div class="room-choices">
+          ${[
+            ["game", "Game Room"],
+            ["classroom", "Classroom"],
+            ["library", "Library"],
+            ["kids", "Kids Room"],
+          ]
+            .map(
+              ([id, label]) =>
+                `<button data-room-choice="${id}"><img src="/assets/recovered/${id === "kids" ? "kids" : id}.png" alt="">${label}</button>`,
+            )
+            .join("")}
+        </div><p>Play with the original engine, follow original lessons, or explore annotated games.</p></div>
+        <div id="kids-content" hidden><h2>Kids Room</h2><div class="kids-paths"><section><img class="path-art" src="/assets/rooms/learn-to-play.png" alt="Learn to Play"><h3>Learn the pieces</h3><p>Original beginner lessons and board exercises. Narration is unavailable.</p><label for="kids-lesson">Choose an original lesson</label><select id="kids-lesson"></select><button id="kids-learn">Open lesson</button></section><section><img class="path-art" src="/assets/rooms/play-a-game.png" alt="Play a Game"><h3>Play a friendly opponent</h3><p>Starts a new game with original personality settings. Historical ratings are not calibrated here.</p><button data-kids-profile="aaron">New game with Aaron</button><button data-kids-profile="niko">New game with Niko</button></section></div></div>
+        <p id="landing-message" role="status"></p><p class="landing-note">Original artwork and text; browser navigation and layout reconstructed.</p>
+      </section>
       <section id="content-panel" class="content-panel floating" hidden>
         <header class="panel-title"><img src="/assets/recovered/window-icon.png" alt=""><h2 id="content-title">Classroom</h2></header>
         <div class="content-body"><label for="content-search">Search original content</label><input id="content-search" type="search"><p id="content-count"></p>

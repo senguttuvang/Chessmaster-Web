@@ -2,6 +2,7 @@ import { Chess, type Square, type PieceSymbol, type Color } from "chess.js";
 import { Effect, Schema } from "effect";
 import { engineMove, RING_SIZE, sendCommand } from "./protocol";
 import "./style.css";
+import { RoomNavigation } from "./navigation";
 import { ContentRoom } from "./content-room";
 import { room, wireRoomControls } from "./room";
 import { OriginalBoard, type CapturedPiece } from "./board3d";
@@ -23,6 +24,7 @@ const board = $("board");
 const game = new Chess();
 let originalBoard: OriginalBoard | undefined;
 let contentRoom: ContentRoom | undefined;
+let navigation: RoomNavigation | undefined;
 let view3d = true;
 let reviewPly: number | null = null;
 let elapsed = { w: 0, b: 0 };
@@ -498,10 +500,21 @@ function contentPiece(square: string) {
     : undefined;
 }
 wireRoomControls();
-contentRoom = new ContentRoom(render, (fen) => void startGame(fen));
-$("room-classroom").onclick = () => void contentRoom!.open("classroom");
-$("room-library").onclick = () => void contentRoom!.open("library");
-$("room-game").onclick = () => void contentRoom!.open("game");
+contentRoom = new ContentRoom(render, (fen) => {
+  navigation?.show("game");
+  void startGame(fen);
+});
+navigation = new RoomNavigation(contentRoom, (id) => {
+  const select = $<HTMLSelectElement>("personality");
+  if (![...select.options].some((o) => o.value === id)) {
+    status(
+      "Personality data is not ready. Wait for loading or reopen Game settings.",
+    );
+    return;
+  }
+  select.value = id;
+  select.dispatchEvent(new Event("change"));
+});
 OriginalBoard.create(
   $("board-stage"),
   board,
@@ -518,7 +531,7 @@ OriginalBoard.create(
   );
 setView();
 $("new-game").onclick = () => {
-  void contentRoom?.open("game");
+  navigation?.show("game");
   void startGame();
 };
 $("load-position").onclick = () => {
@@ -539,7 +552,7 @@ $("position-form").onsubmit = (event) => {
     return;
   }
   $<HTMLDialogElement>("position-dialog").close();
-  void contentRoom?.open("game");
+  navigation?.show("game");
   void startGame(fen);
 };
 $("flip").onclick = () => {

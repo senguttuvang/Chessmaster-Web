@@ -885,3 +885,96 @@ textarea {
     order: 1;
   }
 }
+.landing-mode .board-area,
+.landing-mode #shortcuts,
+.landing-mode #game-status,
+.landing-mode #captured-window {
+  display: none;
+}
+.landing-panel {
+  margin: 24px auto;
+  width: min(900px, calc(100% - 40px));
+  min-height: 650px;
+  border: 4px ridge #b79b52;
+  background: #dad0b0 url("/assets/rooms/lobby-background.png") center top /
+    cover;
+}
+.landing-panel h2 {
+  margin: 0;
+}
+#home-content,
+#kids-content {
+  margin: 28px;
+  padding: 24px;
+  background: #e1d7bcf2;
+  border: 2px ridge #b29b63;
+}
+.room-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin: 30px 0;
+}
+.room-choices button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px;
+  min-width: 125px;
+  gap: 10px;
+}
+.room-choices img {
+  width: 72px;
+  height: 65px;
+  object-fit: contain;
+}
+.kids-paths {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  margin-top: 22px;
+}
+.kids-paths section {
+  line-height: 1.6;
+}
+.path-art {
+  width: 100px;
+  height: 85px;
+  object-fit: contain;
+}
+.kids-paths label,
+.kids-paths select,
+.kids-paths button {
+  display: block;
+  max-width: 100%;
+  margin-top: 12px;
+}
+.landing-note,
+#landing-message {
+  margin: 24px;
+  padding: 10px;
+  background: #e1d7bcf2;
+  color: #33290e;
+  line-height: 1.5;
+}
+@media (max-width: 700px) {
+  .landing-panel {
+    margin: 12px;
+    width: calc(100% - 24px);
+    min-height: 0;
+  }
+  #home-content,
+  #kids-content {
+    margin: 10px;
+    padding: 15px;
+  }
+  .kids-paths {
+    grid-template-columns: 1fr;
+  }
+  .room-choices {
+    gap: 10px;
+  }
+  .room-choices button {
+    min-width: 100px;
+  }
+}
