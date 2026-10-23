@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "8b89b74c527af0346304033f5bba3f62fc950995",
+  "method": "Explicit source allowlist; no Git objects/history, game payloads or recovery outputs copied. Some exported source is subsequently adapted for BYO media; these hashes identify the input snapshot.",
+  "files": [
+    {
+      "path": "bun.lock",
+      "sourceSha256": "a2e83cd49b9341a152ed05a016e5ac7423ed2b5fcd047521e0dffa960bf5f8e9",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "engine/host.c",
+      "sourceSha256": "e82233aeb8bb2e46dc4d582da74f86b142ade14065d54fa69e46d3a04c7cb9a1",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "fdcd5ce1cc2a6bcb68f124660c3f89f1b81659d165945100f6a43d74b98f3197",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "playwright.config.ts",
+      "sourceSha256": "d47b7f670f51be09e36c15f3f74b7f98ab00bb0a381b8ad413fc0f3e00858bf2",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "pyproject.toml",
+      "sourceSha256": "c1ad4aff8d58fa868120de54a108ecf857a1d192cdfdb9537553a4a8c41b70ba",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/content.spec.ts",
+      "sourceSha256": "3526b68d55c624c080dbf41ef48fb2235de3110066ff86c43e457f328a75d85c",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/database.spec.ts",
+      "sourceSha256": "d1928bb68bec1e7a0866317a3b0d272a5d9cc97f2dbf7f8e371f714fb25b6c2a",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/game.spec.ts",
+      "sourceSha256": "ab2260f3f5ef39dfbc2fda074294c0351972aa0df48a2e89d71d2094ee582b0d",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/home-kids.spec.ts",
+      "sourceSha256": "fa7843d888fe2f721ec363581ad13252c99f7e137d871a1bb9cfe0b81e4a9edc",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/isolation.spec.ts",
+      "sourceSha256": "d8d18b9312323256da478a8bf3da973483d2e3ed72f0f5eb2b030bdb55d7214b",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/recovered-ui.spec.ts",
+      "sourceSha256": "692c6a56cb6054cae2157094f236402439500cd9cbf87a08fb831c6bb99921d9",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/browser/tournament-live.spec.ts",
+      "sourceSha256": "bfcf31633427360b18ac46796332fc6cecc2c0bb64ab413a9ab208bcaa9f07e3",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/database.test.ts",
+      "sourceSha256": "7dbb795a07b9e44f109d6b37f8e11e67122df4f83dfde8ea5291a29e4f4e9389",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/native.test.ts",
+      "sourceSha256": "d5fa194e7d29eefc2af1f2eab989cae882c20af0891e9ef2a52500a694079a84",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/protocol.test.ts",
+      "sourceSha256": "8e4930503d15ba4cb801f1ea2496fdfcb87dcee83e43a0ba003b59595883f167",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/replay.test.ts",
+      "sourceSha256": "1bb0cfb131194241e768fb279e46ee1884165276370d567c7edda1d05d2baa4a",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/test_assets.py",
+      "sourceSha256": "311aba78facd41bbc9a7b0ced7aeced0181aa1fd2ae03a6d100897eafac56924",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/test_content.py",
+      "sourceSha256": "9b552b04297eeaccec548f7ccb91f85dfb3b003557c75a9c4f3dfc55d6317202",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/test_inspection.py",
+      "sourceSha256": "18a6d076b288cd6376821c4d8c230b673d0e52302b77afee2d4079205eacb529",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/test_room_art.py",
+      "sourceSha256": "85d3d966ad345216b69b9eb0c2ab5f44e68bde6a0d630d3e608e16e49948b359",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/test_translation.py",
+      "sourceSha256": "8da887b79a4e1aba8e5bdc0732acc839e81e758b900fd91dd8709a08ff4159ed",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/test_ui_recovery.py",
+      "sourceSha256": "9909d01277349b37bc016b1e445289ce66867aad4755ef91ec331b41a3baf171",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tests/tournament.test.ts",
+      "sourceSha256": "e955fc7ca5ac6b2a4cf189543bb73de6140bf485f99205e04ea8f1fe4fbbf9ea",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/ExportRecovered.java",
+      "sourceSha256": "115ae1cad6626ad7397b550101b8874ca5dcf6837da38e9a65433e70f3ee5fb5",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/ExportRoomNetwork.java",
+      "sourceSha256": "f8e0bc96b8661995dfb64750b9c2e15be92a5019c23aebe3a0759d6c475e0ca2",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/ExportUI.java",
+      "sourceSha256": "5c0e8c7d640c93811e485d61b6d4b1aec3a760971d4a7a7e22461e8d0d17daa1",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/audit_lesson_media.py",
+      "sourceSha256": "20457ad4adaf6c58cd1db93e099e0a751e5b27d909acb489fff213f8918a38d3",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/blast_decode.c",
+      "sourceSha256": "4d509a46c5418bcc0cf588fec77325bc757ec8a2085a6459b5b424ca2f00c162",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/build_ghidra_decompiler.sh",
+      "sourceSha256": "71990acc22dc26976845bd1476ce9d5864b953b1c5037cf8ebfc0a7d40580dab",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/content_coverage.ts",
+      "sourceSha256": "a76ebdc010dcc379fc21e8a19f14254d609493287bd79e2a40ea0316f452c5fa",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/inspect_installation.py",
+      "sourceSha256": "c250b72b3beb39989d73a2f85c68e95183a01d56c687f9f7dd9f3f4dbff1191b",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/normalize_pe.py",
+      "sourceSha256": "5b636e86ef01196e4dfdfa463b98dfa833469a7d76db0e1253cb22a5cd532523",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/prepare_room_evidence.ts",
+      "sourceSha256": "42eacaf26adacfaea597339ab1946e82082aef787de55fe3287148afedfdf1ff",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/recover.py",
+      "sourceSha256": "7cdfc44c33c1bc77fca52a3dd02cee911c3c0cbec6e523ced92b711572be2ff6",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/recover_content.py",
+      "sourceSha256": "53e3abc6643c7faa89e315a020e626e8c92a9ae52fe233c4ae7ccf5018f370e0",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/recover_games.ts",
+      "sourceSha256": "1d2c51b3ad8660cf358cffec63235503147fee964b57835981c793e223064819",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/recover_room_art.py",
+      "sourceSha256": "9aff9202f4b74073b88d2735ba3bec5c364cc6e8ae1c77e71dba3dd069d319ae",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/recover_ui.py",
+      "sourceSha256": "4f6da5510fc9b256f5b630ce10f211b4efc35c780e8f90afa735806542555e14",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/reference.py",
+      "sourceSha256": "6727a806d83e6adff520fec75516d6bfb184942f9ace5834d9f516bc0315f770",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/room_evidence.py",
+      "sourceSha256": "4f9a4de53e61c7a0a31d7a75cb14fb7dd964c7c4b176d6c749732a4c298747cb",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/trace_engine.py",
+      "sourceSha256": "876ebae9b9aebdb53facbe60e91b1c5364682f2032bfe3c034250105c60686e9",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tools/win32_resources.py",
+      "sourceSha256": "ad1a91d0cfe548b05634059166c645837e4f3d44141ab27b6dc4c7a5bca51467",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "a2c2e5693a02561750f7f2b564fa41ebd99cd3a25f0d620803ce98a5e1659ee8",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "uv.lock",
+      "sourceSha256": "dc35ee915c0a7d5119bf6847ee34ee08232e1a829b1c47da242652c87fa9d5fd",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "vendor/blast/blast.c",
+      "sourceSha256": "ebe6ec1b37dbd2b03959f453a5eab298621dcb6e593954bf22fe88d1abcfa72e",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/blast/blast.h",
+      "sourceSha256": "2b99276c3b40fd231a09df942a95a7cf007858e6bdf0a051fe29719316cc58a7",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/LICENSE",
+      "sourceSha256": "2c3ed50f898dcbe2ca8a781e4b5333836970fe59d1035890e2c0db00915b310f",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/UPSTREAM.md",
+      "sourceSha256": "822577f763d8c86b885b05314cb23437fe4cd1dc531b792d49222f77cd2ca7de",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/ghidra/ExportFunctions.java",
+      "sourceSha256": "178bfaec60fa60c2f25d87070c6089fd289b2b1ce22503852b7bbce32b7f19d3",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/ghidra/NameFromAsserts.java",
+      "sourceSha256": "0e0a328ef0da7a639545d058c16b52b9b48abc21769fe1b42961fab664d4cccc",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/ghidra/RecoverRttiClasses.java",
+      "sourceSha256": "eb195bd9b458377a354460d3ea56021ade4589b459fcabb9e497d9ce12465b89",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/ghidra/export.sh",
+      "sourceSha256": "1de359ed35630bfb745ac70e3ba4f000c6d7944f9612b6edc9a729eaf199ce6a",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/runtime/cpu.h",
+      "sourceSha256": "b6a5059631f5f9778eb8ed8cbadcdc982a12cbe4c304b781e61e211c41b8a62e",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/runtime/interp.c",
+      "sourceSha256": "328dca7cb2b93f3db68ae31198d3999be1b24caae6fb605fedf5760a9baff055",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/runtime/runtime.c",
+      "sourceSha256": "7593389164f579153b64ad303d5ae8f3b48648df2be3a3a50af30d970a7ea200",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/runtime/runtime.h",
+      "sourceSha256": "bbaae975326b4a017e7d940698eb21d801e161f120222b2edb36d7acaf03ab14",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/runtime/simd.h",
+      "sourceSha256": "9fb16e777c2b8d3571e397f6de939d07d84d6892298fa517418975173eabc79c",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vendor/cricket-recompiler/translator/x86toc.py",
+      "sourceSha256": "d99bd22c4c61e99fe918ade489a18f621e37571c221c8654a83bab56d1faa183",
+      "category": "licensed-upstream-tooling"
+    },
+    {
+      "path": "vite.config.ts",
+      "sourceSha256": "a1a62d7823e0ce9b3ebb1ece06c1c377edfd41bb4807eced9281c56361adaba1",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/index.html",
+      "sourceSha256": "9c04c085db16d2398dd28413647567fcfad73a15f52c660e28e346dafdeed021",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/board3d.ts",
+      "sourceSha256": "51e2bfece7d94b1aab3449d1f6e503e6ba2e15988712a7a88056c445091a73e6",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/content-room.ts",
+      "sourceSha256": "2e6b41924156a6ba47aaed7c72bcefb5c7387fbc43b543aeac72a0e010426279",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/database-room.ts",
+      "sourceSha256": "202157e8d2d3fb90ccd2c72afde99f673b1739b7552fbaf39db0b083f10b9137",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/database.ts",
+      "sourceSha256": "dfb0d886f6dc8a12904427b148a0bd66b53adf8b8d43378fadcabac5c0b84870",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/engine-match.ts",
+      "sourceSha256": "5f29bf18349d911bb1bbc06f97f468a98fd61e717c58d185322d376063e21cd3",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/engine.worker.ts",
+      "sourceSha256": "b568fc02e88f3dd95ffd36267efd21780f795d6d5eeca4091723d7ed4efcbf5e",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/live-room.ts",
+      "sourceSha256": "d3803eddb4f3149a17afe12a50d8241a6b8d07f4c71b7f04e2290c5431bdcca2",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/main.ts",
+      "sourceSha256": "28febb7b501b9826cae749c965bd835a1c85de8012b67dd3673fd45f6d69e47f",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/navigation.ts",
+      "sourceSha256": "2c93a4a5b34475cb0c1439755fc5d20461d0ca10dafb35b0ed2c9c6cf8acb207",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/pgn.ts",
+      "sourceSha256": "091da39ad1ab70b92320467fb608ac763eb1e1b04eb224f4e2a79cdb4158f3f2",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/protocol.ts",
+      "sourceSha256": "edc9a746e26825a7ab66c4d7e2a29fef3b2d32f3753582142d7501a5728bfab3",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/replay.ts",
+      "sourceSha256": "c3b94ed99f2dc5fbf3acdc58995ce5c05074afb0db80bdffc96aa296c892b63a",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/room.ts",
+      "sourceSha256": "def045e02395c8a31b18fa80ee36f67e94638004fb357f5d5c20a16ec070fc9b",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/style.css",
+      "sourceSha256": "5b4ace202b3d60feabdd1a615eaf904844007992e94785bf68a92a1fbf097b8c",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/tournament-room.ts",
+      "sourceSha256": "63719bf13c9652fa8297a4e0e531fd6985f5c8034a93ef16b065afb62ce633e8",
+      "category": "project-authored-source"
+    },
+    {
+      "path": "web/src/tournament.ts",
+      "sourceSha256": "cff6c586497f41040267001e2a7f12c792a4254353e091b4ac8b74e9dbec1a26",
+      "category": "project-authored-source"
+    }
+  ]
+}
